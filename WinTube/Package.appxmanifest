@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:uap3="http://schemas.microsoft.com/appx/manifest/uap/windows10/3"
+  IgnorableNamespaces="uap mp uap3">
+
+  <Identity
+    Name="7bc65243-c322-4fb1-8c47-ed537fdc2751"
+    Publisher="CN=jjb"
+    Version="1.0.0.0" />
+
+  <mp:PhoneIdentity PhoneProductId="7bc65243-c322-4fb1-8c47-ed537fdc2751" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
+
+  <Properties>
+    <DisplayName>WinTube</DisplayName>
+    <PublisherDisplayName>jjb</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+	<TargetDeviceFamily Name="Windows.Universal" MinVersion="10.0.15035.0" MaxVersionTested="10.0.17763.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="x-generate"/>
+  </Resources>
+
+  <Applications>
+    <Application Id="App"
+      Executable="$targetnametoken$.exe"
+      EntryPoint="WinTube.App">
+      <uap:VisualElements
+        DisplayName="WinTube"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        Description="WinTube"
+        BackgroundColor="transparent">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
+        <uap:SplashScreen Image="Assets\SplashScreen.png"  BackgroundColor="#000000"/>
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <uap3:Capability Name="backgroundMediaPlayback"/>
+  </Capabilities>
+</Package>

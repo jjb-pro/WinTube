@@ -1,0 +1,36 @@
+﻿<Page
+    x:Class="WinTube.Pages.SettingsPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:WinTube.Pages"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition Height="auto"/>
+            <RowDefinition/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Orientation="Horizontal">
+            <SymbolIcon Symbol="Setting"/>
+            <TextBlock Margin="10, 0, 0, 0" Style="{StaticResource HeaderTextBlockStyle}" Text="Settings"/>
+        </StackPanel>
+
+        <ComboBox Grid.Row="1" Margin="0, 10, 0, 0" HorizontalAlignment="Stretch" Header="Default Audio Quality"/>
+        <ComboBox Grid.Row="2" Margin="0, 10, 0, 0" HorizontalAlignment="Stretch" Header="Default Video Quality"/>
+        <TextBox Grid.Row="3" Margin="0, 10, 0, 0" Header="Search results limit" TextChanging="NumericTextBox_TextChanging"/>
+        <TextBox Grid.Row="4" Margin="0, 10, 0, 0" Header="Double-tap rewind duration (seconds)" TextChanging="NumericTextBox_TextChanging"/>
+        <TextBox Grid.Row="5" Margin="0, 10, 0, 0" Header="Double-tap forward duration (seconds)" TextChanging="NumericTextBox_TextChanging"/>
+
+        <Button Grid.Row="7" Content="Save"/>
+    </Grid>
+</Page>
