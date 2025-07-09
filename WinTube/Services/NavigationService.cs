@@ -12,10 +12,10 @@ namespace WinTube.Services
 
         public void Initialize(Frame contentFrame) => _contentFrame = contentFrame;
 
-        public void NavigateTo(Type pageType)
+        public void NavigateTo(Type pageType, object parameter = null)
         {
             if (_contentFrame.SourcePageType != pageType)
-                _contentFrame.Navigate(pageType);
+                _contentFrame.Navigate(pageType, parameter);
         }
 
         public void GoBack()

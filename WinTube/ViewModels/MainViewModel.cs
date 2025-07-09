@@ -1,41 +1,25 @@
-﻿using System;
-using System.Windows.Input;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using WinTube.Model;
 using WinTube.Pages;
 using WinTube.Services;
 using WinTube.ViewModels;
 
-namespace Mail.ViewModels
+namespace WinTube.ViewModels
 {
-    public class MainViewModel : BindableBase
+    public partial class MainViewModel(NavigationService navigationService) : BindableBase
     {
-        private readonly NavigationService _navigationService;
-
-        public ICommand NavigateBackCommand { get; }
-        public ICommand NavigateHomeCommand { get; }
-        public ICommand NavigateSearchCommand { get; }
-        public ICommand NavigateSettingsCommand { get; }
-
-        public MainViewModel(NavigationService navigationService)
+        private string _searchText = string.Empty;
+        public string SearchText
         {
-            _navigationService = navigationService;
-
-            //BackCommand = new RelayCommand();
-            NavigateBackCommand = new RelayCommand(GoBack, () => _navigationService.CanGoBack);
-            NavigateHomeCommand = new RelayCommand(() => NavigateTo(typeof(HomePage)));
-            NavigateSearchCommand = new RelayCommand(() => NavigateTo(typeof(SearchPage)));
-            NavigateSettingsCommand = new RelayCommand(() => NavigateTo(typeof(SettingsPage)));
+            get => _searchText;
+            set => SetProperty(ref _searchText, value);
         }
 
-        private void GoBack()
+        public void OnQuerySubmitted()
         {
-            _navigationService.GoBack();
-            ((RelayCommand)NavigateBackCommand).RaiseCanExecuteChanged();
-        }
+            navigationService.NavigateTo(typeof(SearchPage));
 
-        private void NavigateTo(Type pageType)
-        {
-            _navigationService.NavigateTo(pageType);
-            ((RelayCommand)NavigateBackCommand).RaiseCanExecuteChanged();
+            WeakReferenceMessenger.Default.Send(new SearchRequestedMessage(SearchText));
         }
     }
 }

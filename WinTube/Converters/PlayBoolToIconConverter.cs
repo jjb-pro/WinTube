@@ -4,7 +4,7 @@ using Windows.UI.Xaml.Data;
 
 namespace WinTube.Converters
 {
-    public class PlayBoolToIconConverter : IValueConverter
+    public class PlayBool : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, string language)
         {

@@ -1,24 +1,15 @@
-﻿using Windows.UI.Xaml.Controls;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Windows.UI.Xaml;
+using Windows.UI.Xaml.Controls;
+using Windows.UI.Xaml.Navigation;
 using WinTube.Model.Observable;
 using WinTube.ViewModels;
 
-namespace WinTube.Pages
+namespace WinTube.Pages;
+
+public sealed partial class SearchPage : Page
 {
-    public sealed partial class SearchPage : Page
-    {
-        // ToDo: use DI
-        public SearchViewModel ViewModel { get; } = new SearchViewModel();
+    public SearchViewModel ViewModel { get; } = ((App)Application.Current).Container.GetRequiredService<SearchViewModel>();
 
-        public SearchPage()
-        {
-            InitializeComponent();
-        }
-
-        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var listBox = sender as ListBox;
-
-            Frame.Navigate(typeof(ViewPage), ((ObservableVideoSearchResult)listBox.SelectedItem).VideoId);
-        }
-    }
+    public SearchPage() => InitializeComponent();
 }

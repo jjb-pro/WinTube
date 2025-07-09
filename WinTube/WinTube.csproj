@@ -2,8 +2,10 @@
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
+    <LangVersion>13.0</LangVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <Nullable>enable</Nullable>
     <ProjectGuid>{CEF1F958-53C8-4FC1-9270-FB683CD6E982}</ProjectGuid>
     <OutputType>AppContainerExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
@@ -21,7 +23,7 @@
     <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
     <AppxOSMaxVersionTestedReplaceManifestVersion>false</AppxOSMaxVersionTestedReplaceManifestVersion>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-    <PackageCertificateThumbprint>32AA6E4C9CAFA6D118E89D845B3C79FE56F55F2D</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>68018A3B67299613122435328A74F26DFC133FCD</PackageCertificateThumbprint>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
@@ -29,6 +31,7 @@
     <AppxBundlePlatforms>arm</AppxBundlePlatforms>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
+    <PackageCertificateKeyFile />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <DebugSymbols>true</DebugSymbols>
@@ -130,6 +133,9 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\ChannelPicture.xaml.cs">
+      <DependentUpon>ChannelPicture.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\CustomMediaTransportControls.cs" />
     <Compile Include="Controls\FontIcon.xaml.cs">
       <DependentUpon>FontIcon.xaml</DependentUpon>
@@ -137,12 +143,17 @@
     <Compile Include="Controls\SynchronizedMediaControl.xaml.cs">
       <DependentUpon>SynchronizedMediaControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Converters\UriToBitmapConverter.cs" />
+    <Compile Include="Converters\NumberToAbbreviatedStringConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
-    <Compile Include="Converters\PlayBoolToIconConverter.cs" />
-    <Compile Include="Helpers\FFmpegPlayer.cs" />
-    <Compile Include="MainPage.xaml.cs">
+    <Compile Include="Converters\ShortDateOffsetConverter.cs" />
+    <Compile Include="Model\IncrementalVideoSearchCollection.cs" />
+    <Compile Include="Model\NamedCaptionSource.cs" />
+    <Compile Include="Model\ShareRequest.cs" />
+    <Compile Include="Pages\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Model\NamedMediaSource.cs" />
     <Compile Include="Model\Observable\ObservablePlaylistSearchResult.cs" />
     <Compile Include="Model\Observable\ObservableSearchResult.cs" />
     <Compile Include="Model\Observable\ObservableVideoSearchResult.cs" />
@@ -164,8 +175,10 @@
     <Compile Include="ViewModels\MainViewModel.cs" />
     <Compile Include="ViewModels\BindableBase.cs" />
     <Compile Include="ViewModels\RelayCommand.cs" />
+    <Compile Include="Model\SearchRequestedMessage.cs" />
     <Compile Include="ViewModels\SearchViewModel.cs" />
     <Compile Include="ViewModels\SettingsViewModel.cs" />
+    <Compile Include="Model\VideoSelectedMessage.cs" />
     <Compile Include="ViewModels\ViewViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -219,6 +232,10 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Page Include="Controls\ChannelPicture.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Controls\FontIcon.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -227,7 +244,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MainPage.xaml">
+    <Page Include="Pages\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
@@ -259,25 +276,23 @@
     <PackageReference Include="CommunityToolkit.Mvvm">
       <Version>8.4.0</Version>
     </PackageReference>
-    <PackageReference Include="FFmpegInteropX">
-      <Version>1.0.1</Version>
-    </PackageReference>
-    <PackageReference Include="FFmpegInteropX.FFmpegUWP">
-      <Version>5.1.100</Version>
-    </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
       <Version>9.0.5</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.14</Version>
     </PackageReference>
+    <PackageReference Include="PolySharp">
+      <Version>1.15.0</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="YoutubeExplode">
       <Version>6.5.4</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\Fonts\SegoeIcons.ttf" />
-    <None Include="WinTube_TemporaryKey.pfx" />
+    <Content Include="Assets\Fonts\Segoe Fluent Icons.ttf" />
   </ItemGroup>
   <ItemGroup>
     <SDKReference Include="Microsoft.VCLibs, Version=14.0">
@@ -286,6 +301,9 @@
     <SDKReference Include="WebP for the UWP, Version=1.0">
       <Name>WebP for the UWP</Name>
     </SDKReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WinTube_TemporaryKey.pfx" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>

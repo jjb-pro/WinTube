@@ -10,7 +10,7 @@
   <Identity
     Name="7bc65243-c322-4fb1-8c47-ed537fdc2751"
     Publisher="CN=jjb"
-    Version="1.0.0.0" />
+    Version="1.1.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="7bc65243-c322-4fb1-8c47-ed537fdc2751" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>
 
@@ -41,7 +41,7 @@
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square71x71Logo="Assets\SmallTile.png" Square310x310Logo="Assets\LargeTile.png"/>
         <uap:SplashScreen Image="Assets\SplashScreen.png"  BackgroundColor="#000000"/>
       </uap:VisualElements>
-    </Application>
+	</Application>
   </Applications>
 
   <Capabilities>

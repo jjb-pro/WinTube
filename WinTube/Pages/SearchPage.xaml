@@ -8,6 +8,7 @@
     xmlns:observableModel="using:WinTube.Model.Observable"
     xmlns:viewmodels="using:WinTube.ViewModels"
     xmlns:converters="using:WinTube.Converters"
+    xmlns:controls="using:WinTube.Controls"
     d:DataContext="{d:DesignInstance Type=viewmodels:SearchViewModel}"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -18,32 +19,26 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"/>
-            <RowDefinition Height="auto"/>
             <RowDefinition/>
         </Grid.RowDefinitions>
 
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition/>
-                <ColumnDefinition Width="auto"/>
-            </Grid.ColumnDefinitions>
+        <ProgressBar IsIndeterminate="True" Visibility="{x:Bind ViewModel.IsProgressBarVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
 
-            <AutoSuggestBox VerticalAlignment="Center" QueryIcon="Find" Text="{x:Bind ViewModel.SearchText, Mode=TwoWay}" QuerySubmitted="{x:Bind ViewModel.OnQuerySubmitted}"/>
-            <Button Grid.Column="1" Margin="5, 0, 0, 0" VerticalAlignment="Center" Background="Transparent">
-                <SymbolIcon Symbol="Filter"/>
-            </Button>
-        </Grid>
-        <ProgressBar Grid.Row="1" Margin="0, 10, 0, 0" IsIndeterminate="True" Visibility="{x:Bind ViewModel.IsProgressBarVisible, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}"/>
-
-        <StackPanel Visibility="{x:Bind ViewModel.IsOffline, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" Grid.Row="2" Margin="0, 10, 0, 0" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <FontIcon Glyph="&#xF384;" FontSize="32"/>
-            <TextBlock Margin="0, 10, 0, 0" Style="{StaticResource TitleTextBlockStyle}" Text="It looks like you're currently offline."/>
+        <StackPanel Visibility="{x:Bind ViewModel.IsOffline, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" Grid.Row="1" Margin="0, 10, 0, 0" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <controls:FontIcon Glyph="&#xF384;" Size="32" />
+            <TextBlock Margin="0, 10, 0, 0" Style="{StaticResource TitleTextBlockStyle}" TextAlignment="Center" Text="It looks like you're currently offline."/>
         </StackPanel>
 
-        <ListBox Visibility="{x:Bind ViewModel.IsOffline, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" Grid.Row="2" Margin="0, 10, 0, 0" ItemsSource="{x:Bind ViewModel.SearchResults, Mode=OneWay}" Background="Transparent" SelectionChanged="ListBox_SelectionChanged">
-            <ListBox.ItemTemplate>
+        <ListView 
+            Visibility="{x:Bind ViewModel.IsOffline, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" 
+            Grid.Row="1" 
+            Margin="0, 10, 0, 0" 
+            SelectedItem="{x:Bind ViewModel.SelectedVideo, Mode=TwoWay}"
+            ItemsSource="{x:Bind ViewModel.SearchResults, Mode=OneWay}"
+            SelectionChanged="{x:Bind ViewModel.OnVideoSelected}">
+            <ListView.ItemTemplate>
                 <DataTemplate x:DataType="observableModel:ObservableVideoSearchResult">
-                    <Grid>
+                    <Grid Padding="0, 10">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="auto"/>
                             <RowDefinition Height="auto"/>
@@ -62,11 +57,11 @@
                                 <ColumnDefinition Width="auto"/>
                                 <ColumnDefinition/>
                             </Grid.ColumnDefinitions>
-                            
-                            <Grid Grid.RowSpan="1" Width="32" Height="32" VerticalAlignment="Center">
-                                <Ellipse Fill="Gray" StrokeThickness="1"/>
-                                <SymbolIcon HorizontalAlignment="Center" VerticalAlignment="Center" Symbol="Contact" Foreground="White"/>
+
+                            <Grid Grid.RowSpan="1" VerticalAlignment="Center">
+                                <controls:ChannelPicture ImageSource="{x:Bind ChannelPicture, Mode=OneWay}" />
                             </Grid>
+
 
                             <Grid Grid.Column="1" Margin="10, 0, 0, 0">
                                 <Grid.RowDefinitions>
@@ -80,7 +75,7 @@
                         </Grid>
                     </Grid>
                 </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
+            </ListView.ItemTemplate>
+        </ListView>
     </Grid>
 </Page>

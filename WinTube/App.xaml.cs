@@ -1,4 +1,4 @@
-﻿using Mail.ViewModels;
+﻿using WinTube.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using Windows.ApplicationModel;
@@ -7,7 +7,8 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 using WinTube.Services;
-using WinTube.ViewModels;
+using WinTube.Pages;
+using YoutubeExplode;
 
 namespace WinTube
 {
@@ -23,22 +24,20 @@ namespace WinTube
 
         private static ServiceProvider RegisterServices()
         {
-            var services = new ServiceCollection();
-
-            services.AddSingleton<NavigationService>();
-
-            services.AddTransient<MainViewModel>();
-            services.AddTransient<SearchViewModel>();
-            services.AddTransient<ViewViewModel>();
-
-            return services.BuildServiceProvider();
+            return new ServiceCollection()
+                .AddSingleton<YoutubeClient>()
+                .AddSingleton<NavigationService>()
+                .AddTransient<MainViewModel>()
+                .AddTransient<SearchViewModel>()
+                .AddTransient<ViewViewModel>()
+                .BuildServiceProvider();
         }
 
         protected override void OnLaunched(LaunchActivatedEventArgs e)
         {
             Container = RegisterServices();
 
-            if (!(Window.Current.Content is Frame rootFrame))
+            if (Window.Current.Content is not Frame rootFrame)
             {
                 rootFrame = new Frame();
 

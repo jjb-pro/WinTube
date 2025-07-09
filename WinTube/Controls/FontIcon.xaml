@@ -10,7 +10,8 @@
     mc:Ignorable="d">
 
     <TextBlock
+        TextAlignment="Center"
         FontFamily="/Assets/Fonts/SegoeIcons.ttf#Segoe Fluent Icons"
-        FontSize="20"
+        FontSize="{x:Bind Size, Mode=OneWay}"
         Text="{x:Bind Glyph, Mode=OneWay}" />
 </UserControl>

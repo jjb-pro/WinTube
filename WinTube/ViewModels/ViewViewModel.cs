@@ -1,87 +1,135 @@
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using CommunityToolkit.Mvvm.Messaging;
 using System;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Windows.Media.Core;
+using Windows.Media.Playback;
+using WinTube.Model;
 using YoutubeExplode;
 using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.Streams;
 
-namespace WinTube.ViewModels
+namespace WinTube.ViewModels;
+
+public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedMessage>
 {
-    public class ViewViewModel : BindableBase
+    private readonly YoutubeClient _client;
+
+    private Uri _videoUri;
+    public event EventHandler<ShareRequest> ShareRequested;
+
+    public ObservableCollection<NamedMediaSource> AudioStreams { get; } = [];
+    public ObservableCollection<NamedMediaSource> VideoStreams { get; } = [];
+    public ObservableCollection<NamedCaptionSource> CaptionSources { get; } = [];
+
+    [ObservableProperty] private string _title;
+
+    [ObservableProperty] private string _channelTitle;
+    [ObservableProperty] private Uri _channelPicture;
+
+    [ObservableProperty] private long _likeCount;
+
+    [ObservableProperty] private DateTimeOffset _uploadDate;
+    [ObservableProperty] private long _viewCount;
+    [ObservableProperty] private string _description;
+
+    [ObservableProperty] private bool _isLoading = true;
+
+    public ViewViewModel(YoutubeClient client)
     {
-        // ToDo: use DI
-        private readonly YoutubeClient _client = new YoutubeClient();
+        _client = client;
+        WeakReferenceMessenger.Default.RegisterAll(this);
+    }
 
-        private MediaSource _audioMediaSource;
-        public MediaSource AudioMediaSource
+    public async void Receive(VideoSelectedMessage message)
+    {
+        try
         {
-            get => _audioMediaSource;
-            set => SetProperty(ref _audioMediaSource, value);
-        }
+            var videoId = message.VideoId;
 
-        private MediaSource _videoMediaSource;
-        public MediaSource VideoMediaSource
-        {
-            get => _videoMediaSource;
-            set => SetProperty(ref _videoMediaSource, value);
-        }
+            var videoTask = _client.Videos.GetAsync(videoId);
+            var manifestTask = _client.Videos.Streams.GetManifestAsync(videoId);
 
-
-        private bool _isPlaying;
-        public bool IsPlaying
-        {
-            get => _isPlaying;
-            set => SetProperty(ref _isPlaying, value);
-        }
-
-
-        private string _title;
-        public string Title
-        {
-            get => _title;
-            set => SetProperty(ref _title, value);
-        }
-
-        private TimeSpan? _duration;
-        public TimeSpan? Duration
-        {
-            get => _duration;
-            set => SetProperty(ref _duration, value);
-        }
-
-        public async Task Watch(VideoId videoId)
-        {
-            var video = await _client.Videos.GetAsync(videoId);
-            Title = video.Title;
-            Duration = video.Duration;
-
-            var streamManifest = await _client.Videos.Streams.GetManifestAsync(videoId);
+            var video = await videoTask;
             {
-                var streamInfo = streamManifest
-                .GetAudioStreams()
-                    .Where(x => x.IsAudioLanguageDefault == true)
-                    .OrderBy(x => x.Bitrate)
-                    .Last();
-                AudioMediaSource = MediaSource.CreateFromStream((await _client.Videos.Streams.GetAsync(streamInfo)).AsRandomAccessStream(), "audio/mp3");
-            }
-            {
-                var streamInfos = streamManifest
-                    .GetVideoStreams()
-                    .Where(x => x.Container == Container.Mp4)
-                    .OrderBy(x => x.VideoResolution.Area)
-                    .ToList();
-                var streamInfo = streamInfos[streamInfos.Count - 2];
+                _videoUri = new Uri(video.Url);
 
-                VideoMediaSource = MediaSource.CreateFromStream((await _client.Videos.Streams.GetAsync(streamInfo)).AsRandomAccessStream(), "video/mp4");
-
-                //var trackManifest = await _client.Videos.ClosedCaptions.GetManifestAsync(videoId);
-                //foreach (var track in trackManifest.Tracks)
-                //    VideoMediaSource.ExternalTimedTextSources.Add(TimedTextSource.CreateFromUri(new Uri(track.Url), track.Language.Name));
+                Title = video.Title;
+                ChannelTitle = video.Author.ChannelTitle;
+                UploadDate = video.UploadDate;
+                LikeCount = video.Engagement.LikeCount;
+                ViewCount = video.Engagement.ViewCount;
+                Description = video.Description;
             }
 
-            IsPlaying = true;
+            var channelTask = _client.Channels.GetAsync(video.Author.ChannelId);
+
+            var streamManifest = await manifestTask;
+            {
+                await AddCaptionSourcesAsync(videoId);
+                AddAudioStreams(streamManifest);
+                AddVideoStreams(streamManifest);
+            }
+
+            var channel = await channelTask;
+            {
+                ChannelPicture = new Uri(
+                    channel.Thumbnails.OrderByDescending(t => t.Resolution.Area).First().Url
+                );
+            }
+        }
+        catch (Exception ex)
+        {
+            Description = ex.ToString();
+        }
+        finally
+        {
+            IsLoading = false;
         }
     }
+
+    private async Task AddCaptionSourcesAsync(VideoId videoId)
+    {
+        var trackManifest = await _client.Videos.ClosedCaptions.GetManifestAsync(videoId);
+        foreach (var track in trackManifest.Tracks)
+            CaptionSources.Add(new(track.Language.Name + (track.IsAutoGenerated ? " (auto-generated)" : string.Empty), new Uri(track.Url + "&fmt=srt")));
+    }
+
+    private void AddAudioStreams(StreamManifest manifest)
+    {
+        var streamInfos = manifest
+                .GetAudioStreams()
+                .OrderByDescending(x => x.IsAudioLanguageDefault ?? false)
+                .ThenBy(x => x.AudioLanguage.GetValueOrDefault().Code)
+                .ThenBy(x => x.Bitrate.KiloBitsPerSecond)
+                .ToArray();
+
+        foreach (var streamInfo in streamInfos)
+        {
+            var language = streamInfo.AudioLanguage.HasValue ? streamInfo.AudioLanguage.Value.Name : "unknown";
+            var name = $"{language} • {streamInfo.Bitrate.KiloBitsPerSecond:F2} kbps";
+            if (streamInfo.IsAudioLanguageDefault == true)
+                name += " (original language)";
+
+            AudioStreams.Add(new NamedMediaSource(name, async () => (await _client.Videos.Streams.GetAsync(streamInfo)).AsRandomAccessStream()));
+        }
+    }
+
+    private void AddVideoStreams(StreamManifest manifest)
+    {
+        var streamInfos = manifest
+            .GetVideoStreams()
+            .OrderBy(x => x.VideoResolution.Area)
+            .ToList();
+
+        foreach (var streamInfo in streamInfos)
+            VideoStreams.Add(new NamedMediaSource($"{streamInfo.VideoQuality} ({streamInfo.Container.Name})", async () => (await _client.Videos.Streams.GetAsync(streamInfo)).AsRandomAccessStream()));
+    }
+
+    [RelayCommand]
+    private void OnShare() => ShareRequested?.Invoke(this, new(Title, Description, _videoUri));
 }

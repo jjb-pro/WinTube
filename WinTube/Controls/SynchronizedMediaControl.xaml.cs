@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
@@ -6,123 +7,152 @@ using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
+using WinTube.Model;
 
 namespace WinTube.Controls
 {
     public sealed partial class SynchronizedMediaControl : UserControl
     {
-        private readonly DispatcherTimer _syncTimer = new DispatcherTimer() { Interval = TimeSpan.FromMilliseconds(200) };
-
-        //private readonly MediaElement _audioPlayer = new MediaElement();
-        //private readonly MediaPlayer _videoPlayer = new MediaPlayer();
-
-        private readonly MediaTimelineController _controller = new MediaTimelineController();
-
         private readonly SystemMediaTransportControls _systemMediaTransportControls = SystemMediaTransportControls.GetForCurrentView();
+
+        private bool _isPlaying = false;
+
+        private readonly MediaPlayer _audioPlayer;
+        private readonly MediaPlayer _videoPlayer;
+
+        private readonly MediaTimelineController _mediaTimelineController = new();
+
+        // dependency properties for audio, video, and caption sources
+        public ObservableCollection<NamedMediaSource> AudioStreams
+        {
+            get => (ObservableCollection<NamedMediaSource>)GetValue(AudioStreamsProperty);
+            set => SetValue(AudioStreamsProperty, value);
+        }
+
+        public static readonly DependencyProperty AudioStreamsProperty =
+            DependencyProperty.Register(
+                nameof(AudioStreams),
+                typeof(ObservableCollection<NamedMediaSource>),
+                typeof(SynchronizedMediaControl),
+                new PropertyMetadata(new ObservableCollection<NamedMediaSource>()));
+
+        public ObservableCollection<NamedMediaSource> VideoStreams
+        {
+            get => (ObservableCollection<NamedMediaSource>)GetValue(VideoStreamsProperty);
+            set => SetValue(VideoStreamsProperty, value);
+        }
+
+        public static readonly DependencyProperty VideoStreamsProperty =
+            DependencyProperty.Register(
+                nameof(VideoStreams),
+                typeof(ObservableCollection<NamedMediaSource>),
+                typeof(SynchronizedMediaControl),
+                new PropertyMetadata(null));
+
+        public ObservableCollection<NamedCaptionSource> CaptionSources
+        {
+            get => (ObservableCollection<NamedCaptionSource>)GetValue(CaptionSourcesProperty);
+            set => SetValue(CaptionSourcesProperty, value);
+        }
+
+        public static readonly DependencyProperty CaptionSourcesProperty =
+            DependencyProperty.Register(
+                nameof(CaptionSources),
+                typeof(ObservableCollection<NamedCaptionSource>),
+                typeof(SynchronizedMediaControl),
+                new PropertyMetadata(null));
 
         public SynchronizedMediaControl()
         {
             InitializeComponent();
 
             _systemMediaTransportControls.IsPlayEnabled = true;
+            _systemMediaTransportControls.IsPlayEnabled = true;
             _systemMediaTransportControls.IsPauseEnabled = true;
-            _systemMediaTransportControls.ButtonPressed += SystemMediaTransportControls_ButtonPressed;
+            _systemMediaTransportControls.ButtonPressed += OnSystemMediaTransportControlsButtonPressed;
 
+            _audioPlayer = new MediaPlayer
+            {
+                IsMuted = false,
+                TimelineController = _mediaTimelineController,
+                CommandManager =
+                {
+                    IsEnabled = false
+                }
+            };
+            _videoPlayer = new MediaPlayer
+            {
+                TimelineController = _mediaTimelineController,
+                CommandManager =
+                {
+                    IsEnabled = false
+                }
+            };
+
+            _mediaTimelineController.PositionChanged += OnPositionChanged;
+            _videoPlayer.CurrentStateChanged += OnVideoPlayerStateChanged;
             Loaded += OnLoaded;
             Unloaded += OnUnloaded;
         }
 
-        private void OnSyncTimerTick(object sender, object e)
-        {
-            if (videoPlayerElement.CurrentState == MediaElementState.Paused)
-            {
-                audioPlayerElement.IsMuted = true;
-                System.Diagnostics.Debug.WriteLine("Video is paused. Audio is muted.");
-                return;
-            }
-            else
-            {
-                audioPlayerElement.IsMuted = false;
-            }
-
-            if (videoPlayerElement.CurrentState == MediaElementState.Buffering)
-            {
-                audioPlayerElement.IsMuted = true;
-                System.Diagnostics.Debug.WriteLine("Video is Buffering. Audio is muted.");
-                return;
-            }
-            else
-            {
-                audioPlayerElement.IsMuted = false;
-            }
-
-            double positionDifference = Math.Abs(videoPlayerElement.Position.TotalSeconds - audioPlayerElement.Position.TotalSeconds);
-
-            if (positionDifference > 0.1)
-            {
-                audioPlayerElement.Position = videoPlayerElement.Position;
-                System.Diagnostics.Debug.WriteLine($"Sync correction applied. Audio Player position adjusted to {audioPlayerElement.Position} to match Video Player.");
-            }
-
-            if (audioPlayerElement.CurrentState != MediaElementState.Playing)
-            {
-                audioPlayerElement.Play();
-                audioPlayerElement.IsMuted = false;
-                System.Diagnostics.Debug.WriteLine("Audio Player started playing.");
-            }
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e)
-        {
-            //audioPlayerElement.Dispose();
-            //_videoPlayer.Dispose();
-        }
-
-        public void SetSources(MediaSource audioSource, MediaSource videoSource)
-        {
-            audioPlayerElement.SetPlaybackSource(audioSource);
-            videoPlayerElement.SetPlaybackSource(videoSource);
-
-            _syncTimer.Start();
-        }
-
         private void OnLoaded(object sender, RoutedEventArgs e)
         {
-            videoPlayerElement.MediaOpened += OnMediaOpened;
-            //videoPlayerElement.CurrentStateChanged
+            audioPlayerElement.SetMediaPlayer(_audioPlayer);
+            videoPlayerElement.SetMediaPlayer(_videoPlayer);
 
-            //videoPlayerElement.CommandManager.IsEnabled = false;
-            //_videoPlayer.TimelineController = _controller;
+            _videoPlayer.MediaOpened += OnMediaOpened;
 
-            //_videoPlayer.CommandManager.IsEnabled = false;
-            //_videoPlayer.TimelineController = _controller;
-
-            //audioPlayerElement = (audioPlayerElement);
-            //videoPlayerElement.SetMediaStreamSource(_videoPlayer);
-
-            //_videoPlayer.PlaybackSession.PlaybackStateChanged += PlaybackStateChanged;
-            //_videoPlayer.PlaybackSession.PlaybackStateChanged += PlaybackStateChanged;
-
-            // synchronization logic
-            //_videoPlayer.VolumeChanged += (s, a) => audioPlayerElement.Volume = s.Volume;
-            //_videoPlayer.IsMutedChanged += (s, a) => audioPlayerElement.IsMuted = s.IsMuted;
-
-            _syncTimer.Tick += OnSyncTimerTick;
+            mediaTransportControls.AudioStreamChanged += OnAudioStreamChanged;
+            mediaTransportControls.VideoStreamChanged += OnVideoStreamChanged;
+            mediaTransportControls.CaptionChanged += OnCaptionChanged;
         }
 
-        private void CurrentStateChanged(MediaPlayer sender, object args)
+        private async void OnPositionChanged(MediaTimelineController sender, object args)
         {
-            if (sender.PlaybackSession.PlaybackState == MediaPlaybackState.Playing)
-                _systemMediaTransportControls.PlaybackStatus = MediaPlaybackStatus.Playing;
-            else
-                _systemMediaTransportControls.PlaybackStatus = MediaPlaybackStatus.Paused;
+            var percentage = sender.Position.TotalSeconds / _videoPlayer.PlaybackSession.NaturalDuration.TotalSeconds * 100;
+            if (!double.IsNaN(percentage) && percentage >= 0 && percentage <= 100)
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => mediaTransportControls.SetProgressSliderPosition(percentage));
         }
 
-        private void OnMediaOpened(object sender, RoutedEventArgs e)
+        private async void OnVideoPlayerStateChanged(MediaPlayer sender, object args)
         {
-            // Get the updater.
-            SystemMediaTransportControlsDisplayUpdater updater = _systemMediaTransportControls.DisplayUpdater;
+            var isBufferingCompleted = sender.PlaybackSession.PlaybackState != MediaPlaybackState.Opening && sender.PlaybackSession.PlaybackState != MediaPlaybackState.Buffering;
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                mediaTransportControls.SetBufferingState(isBufferingCompleted);
+            });
+        }
+
+        // media opening
+        private async void OnAudioStreamChanged(object sender, NamedMediaSource e) => _audioPlayer.Source = MediaSource.CreateFromStream(await e.GetStreamCallback(), "audio/mp3");
+
+        private async void OnVideoStreamChanged(object sender, NamedMediaSource e)
+        {
+            var videoStream = await e.GetStreamCallback();
+            var mediaSource = MediaSource.CreateFromStream(videoStream, "video/mp4");
+
+            foreach (var captionSource in CaptionSources)
+            {
+                var timedTextSource = TimedTextSource.CreateFromUri(captionSource.Uri);
+                mediaSource.ExternalTimedTextSources.Add(timedTextSource);
+            }
+
+            _videoPlayer.Source = new MediaPlaybackItem(mediaSource);
+        }
+
+        private void OnCaptionChanged(object sender, int e)
+        {
+            if (_videoPlayer.Source is not MediaPlaybackItem playbackItem)
+                return;
+
+            for (uint i = 0; i < playbackItem.TimedMetadataTracks.Count; i++)
+                playbackItem.TimedMetadataTracks.SetPresentationMode(i, i == e ? TimedMetadataTrackPresentationMode.PlatformPresented : TimedMetadataTrackPresentationMode.Disabled);
+        }
+
+        private void OnMediaOpened(MediaPlayer sender, object args)
+        {
+            // ToDo: set real information
+            var updater = _systemMediaTransportControls.DisplayUpdater;
 
             updater.Type = MediaPlaybackType.Video;
             updater.VideoProperties.Title = "artist";
@@ -132,71 +162,47 @@ namespace WinTube.Controls
             updater.Update();
         }
 
-        private async void SystemMediaTransportControls_ButtonPressed(SystemMediaTransportControls sender, SystemMediaTransportControlsButtonPressedEventArgs args)
+        // play/pause logic
+        private void OnPlayPauseButtonClicked(object sender, RoutedEventArgs e) => TogglePlayState();
+
+        private async void OnSystemMediaTransportControlsButtonPressed(SystemMediaTransportControls sender, SystemMediaTransportControlsButtonPressedEventArgs args)
         {
-            switch (args.Button)
-            {
-                case SystemMediaTransportControlsButton.Play:
-                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => _controller.Resume());
-                    break;
-                case SystemMediaTransportControlsButton.Pause:
-                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => _controller.Pause());
-                    break;
-                default:
-                    break;
-            }
+            if (args.Button == SystemMediaTransportControlsButton.Play || args.Button == SystemMediaTransportControlsButton.Pause)
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, TogglePlayState);
         }
 
-        private async void PlaybackStateChanged(MediaPlaybackSession sender, object args)
+        private void TogglePlayState()
         {
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                //if (audioPlayerElement.PlaybackSession.PlaybackState == MediaPlaybackState.Buffering || _videoPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Buffering)
-                //    mediaTransportControls.SetBufferingState(false);
-                //else
-                //    mediaTransportControls.SetBufferingState(true);
-            }).AsTask();
-        }
-
-        private void PlayPauseButtonClicked(object sender, RoutedEventArgs e)
-        {
-            //if (audioPlayerElement.PlaybackSession.PlaybackState == MediaPlaybackState.Buffering || _videoPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Buffering)
-            //    return;
-
-            if (_syncTimer.IsEnabled)
-            {
-                _syncTimer.Stop();
-                audioPlayerElement.Pause();
-                videoPlayerElement.Pause();
-            }
+            if (_isPlaying)
+                _mediaTimelineController.Pause();
             else
-            {
-                _syncTimer.Start();
-                audioPlayerElement.Play();
-                videoPlayerElement.Play();
-            }
+                _mediaTimelineController.Resume();
+
+            _isPlaying = !_isPlaying;
         }
 
-        private void ProgressSliderValueChanged(object sender, double value)
-        {
-            if (!videoPlayerElement.NaturalDuration.HasTimeSpan)
-                return;
-
-            var totalSeconds = videoPlayerElement.NaturalDuration.TimeSpan.TotalSeconds;
-            videoPlayerElement.Position = TimeSpan.FromSeconds(value * totalSeconds);
-        }
+        // rewind logic
+        private void OnProgressSliderValueChanged(object sender, double value) => _mediaTimelineController.Position = TimeSpan.FromSeconds(value / 100 * _videoPlayer.PlaybackSession.NaturalDuration.TotalSeconds);
 
         private void MediaPlayerDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
         {
-            if (!(sender is FrameworkElement mediaElement))
+            if (sender is not FrameworkElement mediaElement)
                 return;
 
-            var tapPosition = e.GetPosition(mediaElement);
+            mediaTransportControls.SetBufferingState(false);
 
-            if (tapPosition.X > mediaElement.ActualWidth / 2)
-                videoPlayerElement.Position += TimeSpan.FromSeconds(10);
+            if (e.GetPosition(mediaElement).X > mediaElement.ActualWidth / 2)
+                _mediaTimelineController.Position += TimeSpan.FromSeconds(30);
             else
-                videoPlayerElement.Position += TimeSpan.FromSeconds(-30);
+                _mediaTimelineController.Position += TimeSpan.FromSeconds(-10);
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e)
+        {
+            _mediaTimelineController.Pause();
+
+            _audioPlayer?.Dispose();
+            _videoPlayer?.Dispose();
         }
     }
 }

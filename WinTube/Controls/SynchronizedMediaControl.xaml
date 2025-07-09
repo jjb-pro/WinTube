@@ -13,18 +13,21 @@
             <RowDefinition Height="auto" />
             <RowDefinition />
         </Grid.RowDefinitions>
-        <MediaElement x:Name="audioPlayerElement" />
-        <MediaElement
+        <MediaPlayerElement x:Name="audioPlayerElement" />
+        <MediaPlayerElement
             x:Name="videoPlayerElement"
             Grid.Row="1"
             AreTransportControlsEnabled="True"
             DoubleTapped="MediaPlayerDoubleTapped">
-            <MediaElement.TransportControls>
+            <MediaPlayerElement.TransportControls>
                 <local:CustomMediaTransportControls
                     x:Name="mediaTransportControls"
-                    PlayPauseButtonClicked="PlayPauseButtonClicked"
-                    ProgressSliderValueChanged="ProgressSliderValueChanged" />
-            </MediaElement.TransportControls>
-        </MediaElement>
+                    AudioStreams="{x:Bind AudioStreams, Mode=OneWay}"
+                    CaptionSources="{x:Bind CaptionSources, Mode=OneWay}"
+                    PlayPauseButtonClicked="OnPlayPauseButtonClicked"
+                    ProgressSliderValueChanged="OnProgressSliderValueChanged"
+                    VideoStreams="{x:Bind VideoStreams, Mode=OneWay}" />
+            </MediaPlayerElement.TransportControls>
+        </MediaPlayerElement>
     </Grid>
 </UserControl>

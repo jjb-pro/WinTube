@@ -1,11 +1,11 @@
-﻿using Mail.ViewModels;
+﻿using WinTube.ViewModels;
 using Microsoft.Extensions.DependencyInjection;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using WinTube.Pages;
 using WinTube.Services;
 
-namespace WinTube
+namespace WinTube.Pages
 {
     public sealed partial class MainPage : Page
     {
@@ -14,12 +14,9 @@ namespace WinTube
         public MainPage()
         {
             InitializeComponent();
-
-            Loaded += OnLoaded;
-
             ((App)Application.Current).Container.GetService<NavigationService>().Initialize(contentFrame);
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e) => contentFrame.SourcePageType = typeof(SearchPage);
+        private void OnLoaded(object sender, RoutedEventArgs e) => contentFrame.SourcePageType = typeof(HomePage);
     }
 }

@@ -10,66 +10,129 @@
     xmlns:viewmodels="using:WinTube.ViewModels"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}"
     mc:Ignorable="d">
-    <!--<Page.Resources>
-        <converters:PlayBoolToIconConverter x:Key="PlayBoolToIconConverter"/>
-    </Page.Resources>-->
+    <Page.Resources>
+        <converters:ShortDateOffsetConverter x:Key="ShortDateOffsetConverter" />
+        <converters:NumberToAbbreviatedStringConverter x:Key="NumberToAbbreviatedStringConverter" />
+        <converters:UriToBitmapConverter x:Key="UriToBitmapConverter" />
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+    </Page.Resources>
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-            <RowDefinition />
-        </Grid.RowDefinitions>
+        <Grid Margin="0,100,0,0" Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
 
-        <controls:FontIcon Glyph="&#xF384;" />
+            <TextBlock HorizontalAlignment="Center" Text="Please wait ..." />
+            <ProgressBar
+                Grid.Row="1"
+                Margin="0,10,0,0"
+                IsIndeterminate="True" />
+        </Grid>
 
-        <controls:SynchronizedMediaControl x:Name="mediaControl" />
+        <Grid Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="1*" MinHeight="200" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
 
-        <!--<MediaPlayerElement
-            x:Name="audioPlayerElement"
-            AreTransportControlsEnabled="True"
-            Source="{x:Bind ViewModel.VideoMediaSource, Mode=OneWay}" />
-        <MediaPlayerElement
-            x:Name="mediaControl"
-            AreTransportControlsEnabled="True"
-            Source="https://dash.akamaized.net/akamai/bbb_30fps/bbb_30fps.mpd" />-->
+            <controls:SynchronizedMediaControl
+                AudioStreams="{x:Bind ViewModel.AudioStreams, Mode=OneWay}"
+                CaptionSources="{x:Bind ViewModel.CaptionSources, Mode=OneWay}"
+                VideoStreams="{x:Bind ViewModel.VideoStreams, Mode=OneWay}" />
 
-        <!--<MediaPlayerElement x:Name="audioPlayerElement" Source="{x:Bind ViewModel.VideoMediaSource, Mode=OneWay}" AreTransportControlsEnabled="True">
-            <MediaPlayerElement.TransportControls>
-                <controls:CustomMediaTransportControls x:Name="customMediaTransportControls" PlayClicked="customMediaTransportControls_PlayClicked" ProgressSliderValueChanged="Slider_ValueChanged">
-
-                </controls:CustomMediaTransportControls>
-            </MediaPlayerElement.TransportControls>
-        </MediaPlayerElement>
-        <MediaPlayerElement Grid.Row="1" x:Name="videoPlayerElement" Source="{x:Bind ViewModel.AudioMediaSource, Mode=OneWay}"/>-->
-        <!--
-        <Grid
-            Grid.Row="2"
-            Margin="0,10,0,0"
-            Padding="10"
-            BorderBrush="{ThemeResource SystemAccentColor}"
-            BorderThickness="1"
-            CornerRadius="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="auto" />
-                <ColumnDefinition />
-            </Grid.ColumnDefinitions>
-
-            <SymbolIcon VerticalAlignment="Center" Symbol="Cancel" />
             <TextBlock
-                Grid.Column="1"
-                Margin="10,0,0,0"
-                VerticalAlignment="Center"
-                Text="An error has occured while loading the media source. Try selecting a different one."
+                Grid.Row="1"
+                Margin="10,10,0,0"
+                Style="{StaticResource TitleTextBlockStyle}"
+                Text="{x:Bind ViewModel.Title, Mode=OneWay}"
                 TextWrapping="WrapWholeWords" />
-        </Grid>-->
 
-        <TextBlock
-            Grid.Row="3"
-            Margin="0,10,0,0"
-            Style="{StaticResource TitleTextBlockStyle}"
-            Text="{x:Bind ViewModel.Title, Mode=OneWay}" />
+            <StackPanel
+                Grid.Row="2"
+                Margin="0,10,0,0"
+                Orientation="Horizontal">
+                <Button
+                    Foreground="{StaticResource ApplicationForegroundThemeBrush}"
+                    Style="{StaticResource TextBlockButtonStyle}"
+                    ToolTipService.ToolTip="Like">
+                    <StackPanel Orientation="Horizontal">
+                        <SymbolIcon Symbol="Like" />
+                        <TextBlock Margin="5,0,0,0" Text="{x:Bind ViewModel.LikeCount, Mode=OneWay, Converter={StaticResource NumberToAbbreviatedStringConverter}}" />
+                    </StackPanel>
+                </Button>
+
+                <Button
+                    Margin="5,0"
+                    Foreground="{StaticResource ApplicationForegroundThemeBrush}"
+                    Style="{StaticResource TextBlockButtonStyle}"
+                    ToolTipService.ToolTip="Dislike">
+                    <StackPanel Orientation="Horizontal">
+                        <SymbolIcon Symbol="Dislike" />
+                    </StackPanel>
+                </Button>
+
+                <Button
+                    Command="{x:Bind ViewModel.ShareCommand}"
+                    Foreground="{StaticResource ApplicationForegroundThemeBrush}"
+                    Style="{StaticResource TextBlockButtonStyle}"
+                    ToolTipService.ToolTip="Share">
+                    <SymbolIcon Symbol="Share" />
+                </Button>
+            </StackPanel>
+
+            <Grid
+                Grid.Row="3"
+                Margin="0,10,0,0"
+                Padding="0,5"
+                BorderBrush="{StaticResource SystemAccentColor}"
+                BorderThickness="0,1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="auto" />
+                </Grid.ColumnDefinitions>
+
+                <Button Background="Transparent">
+                    <StackPanel Orientation="Horizontal">
+                        <controls:ChannelPicture ImageSource="{x:Bind ViewModel.ChannelPicture, Mode=OneWay, Converter={StaticResource UriToBitmapConverter}}" />
+                        <TextBlock
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            VerticalAlignment="Center"
+                            FontWeight="Bold"
+                            Text="{x:Bind ViewModel.ChannelTitle, Mode=OneWay}" />
+                    </StackPanel>
+                </Button>
+
+                <Button
+                    Grid.Column="3"
+                    Content="Subscribe"
+                    IsEnabled="False"
+                    Style="{ThemeResource AccentButtonStyle}" />
+            </Grid>
+
+            <ScrollViewer
+                Grid.Row="4"
+                Margin="0,10,0,0"
+                Padding="10"
+                VerticalAlignment="Stretch"
+                Background="{ThemeResource AppBarItemPointerOverBackgroundThemeBrush}">
+                <StackPanel>
+                    <TextBlock>
+                        <Run FontWeight="SemiBold" Text="{x:Bind ViewModel.ViewCount, Mode=OneWay, Converter={StaticResource NumberToAbbreviatedStringConverter}}" /> <Run Text="views" /> <Run Text="•" /> <Run FontWeight="SemiBold" Text="{x:Bind ViewModel.UploadDate, Mode=OneWay, Converter={StaticResource ShortDateOffsetConverter}}" />
+                    </TextBlock>
+
+                    <TextBlock
+                        Margin="0,10,0,0"
+                        Text="{x:Bind ViewModel.Description, Mode=OneWay}"
+                        TextWrapping="WrapWholeWords" />
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
     </Grid>
 </Page>

@@ -19,5 +19,18 @@ namespace WinTube.Controls
                 typeof(string),
                 typeof(FontIcon),
                 new PropertyMetadata(string.Empty));
+
+        public int Size
+        {
+            get => (int)GetValue(SizeProperty);
+            set => SetValue(SizeProperty, value);
+        }
+
+        public static readonly DependencyProperty SizeProperty =
+            DependencyProperty.Register(
+                nameof(Size),
+                typeof(int),
+                typeof(FontIcon),
+                new PropertyMetadata(20));
     }
 }
