@@ -1,12 +1,10 @@
-![WinTube icon](https://github.com/jjb-pro/WinTube/blob/main/Assets/WinTube_Icon.png)
+<img src="https://github.com/jjb-pro/WinTube/blob/main/Assets/WinTube_Icon.png" alt="WinTube icon" width="100"/>
 
 # WinTube
 
-**WinTube** is a modern, open-source YouTube client for **UWP** and **Windows Phone**. Built with the MVVM architecture and written in clean, maintainable code, WinTube brings a native, smooth YouTube experience without relying on third-party proxies like Invidious.
+**WinTube** is a modern, open-source YouTube client for **UWP** and **Windows Phone**. Built with the MVVM architecture and written in clean, maintainable code, WinTube brings a native, smooth YouTube experience without relying on third-party proxies/APIs.
 
 > ⚠️ **Beta Notice:** WinTube is still in development. There are no official releases yet — you’ll need to compile it yourself. Despite that, it is already usable.
-
----
 
 ## Features
 
@@ -20,13 +18,9 @@
 
 ![WinTube preview screenshot](https://github.com/jjb-pro/WinTube/blob/main/Assets/WinTube_Preview.png)
 
----
-
 ## Known Limitations
 
 * If you encounter the error: **"video could not be decoded"**, try switching the video format in the playback options — this usually resolves the issue.
-
----
 
 ## Future Plans
 
@@ -37,8 +31,6 @@ Here’s what’s coming soon:
 * **Channel Pages**
 * **Settings Page**
 * **YouTube Account Integration**
-
----
 
 ## Getting Started
 
@@ -58,15 +50,11 @@ Since there are no official releases yet, you’ll need to compile WinTube manua
 
 3. **Build and run** the project on your desired device.
 
----
-
 ## Contributing
 
 Feature requests, bug reports, and contributions are welcome!
 
 Open an [issue](https://github.com/jjb-pro/WinTube/issues) to suggest new features, or fork the repo and make a pull request with your improvements.
-
----
 
 ## License
 
