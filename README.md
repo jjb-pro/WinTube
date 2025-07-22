@@ -16,7 +16,7 @@
 * **MVVM Architecture** – Built using clean, modular, and maintainable MVVM design.
 * **Actively Maintained** – Bug fixes, features, and improvements are continuously being worked on.
 
-![WinTube preview screenshot](https://github.com/jjb-pro/WinTube/blob/main/Assets/WinTube_Preview.png)
+<img src="https://github.com/jjb-pro/WinTube/blob/main/Assets/WinTube_Preview.png" alt="WinTube preview screenshot" width="400"/>
 
 ## Known Limitations
 
