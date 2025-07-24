@@ -4,7 +4,8 @@
 
 **WinTube** is a modern, open-source YouTube client for **UWP** and **Windows Phone**. Built with the MVVM architecture and written in clean, maintainable code, WinTube brings a native, smooth YouTube experience without relying on third-party proxies/APIs.
 
-> ⚠️ **Beta Notice:** WinTube is still in development. There are no official releases yet — you’ll need to compile it yourself. Despite that, it is already usable.
+> [!WARNING]  
+> **Beta Notice:** WinTube is still in development. There are no official releases yet — you’ll need to compile it yourself. Despite that, it is already usable.
 
 ## Features
 
