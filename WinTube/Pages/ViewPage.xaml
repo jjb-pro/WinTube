@@ -43,7 +43,14 @@
             <controls:SynchronizedMediaControl
                 AudioStreams="{x:Bind ViewModel.AudioStreams, Mode=OneWay}"
                 CaptionSources="{x:Bind ViewModel.CaptionSources, Mode=OneWay}"
-                VideoStreams="{x:Bind ViewModel.VideoStreams, Mode=OneWay}" />
+                VideoStreams="{x:Bind ViewModel.VideoStreams, Mode=OneWay}"
+                Visibility="{x:Bind ViewModel.IsLive, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
+
+            <controls:BindableMediaPlayerElement
+                AreTransportControlsEnabled="True"
+                AutoPlay="True"
+                StreamSource="{x:Bind ViewModel.LivestreamSource, Mode=OneWay}"
+                Visibility="{x:Bind ViewModel.IsLive, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
             <TextBlock
                 Grid.Row="1"
@@ -89,7 +96,7 @@
                 Grid.Row="3"
                 Margin="0,10,0,0"
                 Padding="0,5"
-                BorderBrush="{StaticResource SystemAccentColor}"
+                BorderBrush="{ThemeResource SystemAccentColor}"
                 BorderThickness="0,1">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto" />

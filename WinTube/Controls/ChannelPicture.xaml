@@ -1,16 +1,19 @@
-<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8" ?>
 <UserControl
     x:Class="WinTube.Controls.ChannelPicture"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:WinTube.Controls"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:WinTube.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d">
 
-    <Ellipse Width="{x:Bind Size, Mode=OneWay}" Height="{x:Bind Size, Mode=OneWay}">
-        <Ellipse.Fill>
+    <Rectangle
+        Width="{x:Bind Size, Mode=OneWay}"
+        Height="{x:Bind Size, Mode=OneWay}"
+        RadiusX="10">
+        <Rectangle.Fill>
             <ImageBrush ImageSource="{x:Bind ImageSource, Mode=OneWay}" />
-        </Ellipse.Fill>
-    </Ellipse>
+        </Rectangle.Fill>
+    </Rectangle>
 </UserControl>

@@ -1,3 +1,4 @@
+#nullable enable
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -6,8 +7,6 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Windows.Media.Core;
-using Windows.Media.Playback;
 using WinTube.Model;
 using YoutubeExplode;
 using YoutubeExplode.Videos;
@@ -19,12 +18,15 @@ public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedM
 {
     private readonly YoutubeClient _client;
 
-    private Uri _videoUri;
+    private Uri? _videoUri;
     public event EventHandler<ShareRequest> ShareRequested;
 
     public ObservableCollection<NamedMediaSource> AudioStreams { get; } = [];
     public ObservableCollection<NamedMediaSource> VideoStreams { get; } = [];
     public ObservableCollection<NamedCaptionSource> CaptionSources { get; } = [];
+
+    [ObservableProperty] private bool _isLive;
+    [ObservableProperty] private Uri? _livestreamSource;
 
     [ObservableProperty] private string _title;
 
@@ -66,14 +68,25 @@ public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedM
                 Description = video.Description;
             }
 
-            var channelTask = _client.Channels.GetAsync(video.Author.ChannelId);
-
-            var streamManifest = await manifestTask;
+            // check if it's a live stream
+            if (video.Duration == default)
             {
-                await AddCaptionSourcesAsync(videoId);
-                AddAudioStreams(streamManifest);
-                AddVideoStreams(streamManifest);
+                var streamManifest = await manifestTask;
+                {
+                    await AddCaptionSourcesAsync(videoId);
+                    AddAudioStreams(streamManifest);
+                    AddVideoStreams(streamManifest);
+                }
             }
+            else
+            {
+                IsLive = true;
+                LivestreamSource = new Uri(await _client.Videos.Streams.GetHttpLiveStreamUrlAsync(videoId));
+            }
+
+            IsLoading = false;
+
+            var channelTask = _client.Channels.GetAsync(video.Author.ChannelId);
 
             var channel = await channelTask;
             {
@@ -85,9 +98,6 @@ public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedM
         catch (Exception ex)
         {
             Description = ex.ToString();
-        }
-        finally
-        {
             IsLoading = false;
         }
     }

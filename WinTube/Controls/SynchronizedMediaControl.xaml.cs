@@ -66,6 +66,7 @@ namespace WinTube.Controls
         {
             InitializeComponent();
 
+            _systemMediaTransportControls.IsEnabled = true;
             _systemMediaTransportControls.IsPlayEnabled = true;
             _systemMediaTransportControls.IsPlayEnabled = true;
             _systemMediaTransportControls.IsPauseEnabled = true;
