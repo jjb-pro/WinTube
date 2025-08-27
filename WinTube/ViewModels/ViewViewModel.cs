@@ -7,7 +7,9 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Windows.UI.Xaml.Media;
 using WinTube.Model;
+using WinTube.Services;
 using YoutubeExplode;
 using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.Streams;
@@ -17,6 +19,7 @@ namespace WinTube.ViewModels;
 public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedMessage>
 {
     private readonly YoutubeClient _client;
+    private readonly NavigationService _navigationService;
 
     private Uri? _videoUri;
     public event EventHandler<ShareRequest> ShareRequested;
@@ -29,6 +32,7 @@ public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedM
     [ObservableProperty] private Uri? _livestreamSource;
 
     [ObservableProperty] private string _title;
+    [ObservableProperty] private ImageSource? _posterSource;
 
     [ObservableProperty] private string _channelTitle;
     [ObservableProperty] private Uri _channelPicture;
@@ -41,35 +45,29 @@ public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedM
 
     [ObservableProperty] private bool _isLoading = true;
 
-    public ViewViewModel(YoutubeClient client)
+
+    public ViewViewModel(YoutubeClient client, NavigationService navigationService)
     {
         _client = client;
+        _navigationService = navigationService;
+
         WeakReferenceMessenger.Default.RegisterAll(this);
     }
 
     public async void Receive(VideoSelectedMessage message)
     {
+        PosterSource = message.SelectedVideoSearchResult.Thumbnail;
+        IsLoading = false;
+
         try
         {
-            var videoId = message.VideoId;
+            var videoId = message.SelectedVideoSearchResult.VideoId;
 
             var videoTask = _client.Videos.GetAsync(videoId);
             var manifestTask = _client.Videos.Streams.GetManifestAsync(videoId);
 
-            var video = await videoTask;
-            {
-                _videoUri = new Uri(video.Url);
-
-                Title = video.Title;
-                ChannelTitle = video.Author.ChannelTitle;
-                UploadDate = video.UploadDate;
-                LikeCount = video.Engagement.LikeCount;
-                ViewCount = video.Engagement.ViewCount;
-                Description = video.Description;
-            }
-
             // check if it's a live stream
-            if (video.Duration == default)
+            if (message.SelectedVideoSearchResult.Duration != default)
             {
                 var streamManifest = await manifestTask;
                 {
@@ -84,7 +82,17 @@ public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedM
                 LivestreamSource = new Uri(await _client.Videos.Streams.GetHttpLiveStreamUrlAsync(videoId));
             }
 
-            IsLoading = false;
+            var video = await videoTask;
+            {
+                _videoUri = new Uri(video.Url);
+
+                Title = video.Title;
+                ChannelTitle = video.Author.ChannelTitle;
+                UploadDate = video.UploadDate;
+                LikeCount = video.Engagement.LikeCount;
+                ViewCount = video.Engagement.ViewCount;
+                Description = video.Description;
+            }
 
             var channelTask = _client.Channels.GetAsync(video.Author.ChannelId);
 
@@ -142,4 +150,7 @@ public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedM
 
     [RelayCommand]
     private void OnShare() => ShareRequested?.Invoke(this, new(Title, Description, _videoUri));
+
+    [RelayCommand]
+    private void OnBack() => _navigationService.GoBack();
 }

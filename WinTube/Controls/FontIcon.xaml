@@ -5,13 +5,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:WinTube.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    d:DesignHeight="300"
-    d:DesignWidth="400"
+    d:DesignHeight="22"
+    d:DesignWidth="22"
     mc:Ignorable="d">
 
     <TextBlock
-        TextAlignment="Center"
-        FontFamily="/Assets/Fonts/SegoeIcons.ttf#Segoe Fluent Icons"
+        FontFamily="/Assets/Fonts/Segoe Fluent Icons.ttf#Segoe Fluent Icons"
         FontSize="{x:Bind Size, Mode=OneWay}"
-        Text="{x:Bind Glyph, Mode=OneWay}" />
+        Text="{x:Bind Glyph, Mode=OneWay}"
+        TextAlignment="Center" />
 </UserControl>

@@ -144,6 +144,10 @@
     <Compile Include="Controls\SynchronizedMediaControl.xaml.cs">
       <DependentUpon>SynchronizedMediaControl.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Controls\VideoDurationBadge.xaml.cs">
+      <DependentUpon>VideoDurationBadge.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Converters\EqualityToBooleanConverter.cs" />
     <Compile Include="Converters\UriToBitmapConverter.cs" />
     <Compile Include="Converters\NumberToAbbreviatedStringConverter.cs" />
     <Compile Include="Converters\BooleanToVisibilityConverter.cs" />
@@ -174,11 +178,8 @@
     <Compile Include="Services\NavigationService.cs" />
     <Compile Include="Services\SettingsService.cs" />
     <Compile Include="ViewModels\MainViewModel.cs" />
-    <Compile Include="ViewModels\BindableBase.cs" />
-    <Compile Include="ViewModels\RelayCommand.cs" />
     <Compile Include="Model\SearchRequestedMessage.cs" />
     <Compile Include="ViewModels\SearchViewModel.cs" />
-    <Compile Include="ViewModels\SettingsViewModel.cs" />
     <Compile Include="Model\VideoSelectedMessage.cs" />
     <Compile Include="ViewModels\ViewViewModel.cs" />
   </ItemGroup>
@@ -216,6 +217,7 @@
     <Content Include="Assets\StoreLogo.scale-200.png" />
     <Content Include="Assets\StoreLogo.scale-400.png" />
     <Content Include="Assets\Template\temp-channel.png" />
+    <Content Include="Assets\Template\Thumb_Default.png" />
     <Content Include="Assets\Template\WinTube_Icon.png" />
     <Content Include="Assets\Wide310x150Logo.scale-100.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
@@ -247,6 +249,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Controls\VideoDurationBadge.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="Pages\MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -270,6 +276,10 @@
     <Page Include="Themes\Generic.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Themes\TransparentButtonStyle.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
@@ -295,6 +305,9 @@
       <Version>1.15.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Win2D.uwp">
+      <Version>1.28.2</Version>
     </PackageReference>
     <PackageReference Include="YoutubeExplode">
       <Version>6.5.4</Version>

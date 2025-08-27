@@ -1,9 +1,8 @@
+#nullable enable
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Threading;
-using System.Threading.Tasks;
 using Windows.Networking.Connectivity;
-using WinTube.Helpers;
 using WinTube.Model;
 using WinTube.Model.Observable;
 using WinTube.Pages;
@@ -21,9 +20,8 @@ public partial class SearchViewModel : ObservableObject, IRecipient<SearchReques
     [ObservableProperty] private bool _isOffline;
     [ObservableProperty] private ObservableVideoSearchResult? _selectedVideo;
 
-    [ObservableProperty] private IncrementalVideoSearchCollection _searchResults;
-
-    private CancellationTokenSource _cancellationTokenSource;
+    [ObservableProperty] private IncrementalVideoSearchCollection? _searchResults;
+    private CancellationTokenSource? _cts;
 
     public SearchViewModel(YoutubeClient youtubeClient, NavigationService navigationService)
     {
@@ -39,10 +37,10 @@ public partial class SearchViewModel : ObservableObject, IRecipient<SearchReques
 
     public void Receive(SearchRequestedMessage message)
     {
-        _cancellationTokenSource?.Cancel();
+        _cts?.Cancel();
 
-        _cancellationTokenSource = new();
-        SearchResults = new IncrementalVideoSearchCollection(_client, message.Query, _cancellationTokenSource.Token);
+        _cts = new();
+        SearchResults = new IncrementalVideoSearchCollection(_client, message.Query, _cts.Token);
     }
 
     public void OnVideoSelected()
@@ -50,7 +48,7 @@ public partial class SearchViewModel : ObservableObject, IRecipient<SearchReques
         if (null == SelectedVideo)
             return;
 
-        _navigationService.NavigateTo(typeof(ViewPage));
-        WeakReferenceMessenger.Default.Send(new VideoSelectedMessage(SelectedVideo.VideoId));
+        _navigationService.OpenOverlay(typeof(ViewPage));
+        WeakReferenceMessenger.Default.Send(new VideoSelectedMessage(SelectedVideo));
     }
 }

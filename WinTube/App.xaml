@@ -6,6 +6,12 @@
     RequestedTheme="Dark">
 
     <Application.Resources>
-        <SolidColorBrush x:Key="AppBackgroundBrush" Color="#FF1B1C1E" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Themes/TransparentButtonStyle.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+
+            <SolidColorBrush x:Key="AppBackgroundBrush" Color="#FF1B1C1E" />
+        </ResourceDictionary>
     </Application.Resources>
 </Application>

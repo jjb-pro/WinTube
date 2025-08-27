@@ -1,8 +1,8 @@
-﻿using YoutubeExplode.Videos;
+﻿using WinTube.Model.Observable;
 
 namespace WinTube.ViewModels;
 
-public class VideoSelectedMessage(VideoId videoId)
+public class VideoSelectedMessage(ObservableVideoSearchResult selectedVideoSearchResult)
 {
-    public VideoId VideoId { get; } = videoId;
+    public ObservableVideoSearchResult SelectedVideoSearchResult { get; } = selectedVideoSearchResult;
 }

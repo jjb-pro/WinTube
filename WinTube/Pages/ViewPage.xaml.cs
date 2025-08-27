@@ -1,12 +1,11 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿#nullable enable
+using Microsoft.Extensions.DependencyInjection;
 using Windows.ApplicationModel.DataTransfer;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
 using WinTube.Model;
 using WinTube.ViewModels;
-using YoutubeExplode.Videos;
 
 namespace WinTube.Pages
 {
@@ -35,6 +34,7 @@ namespace WinTube.Pages
 
         private void OnShareRequested(object sender, ShareRequest e)
         {
+            _shareData = e;
             DataTransferManager.ShowShareUI();
         }
 

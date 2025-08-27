@@ -1,27 +1,50 @@
 using System;
+using Windows.UI.Core;
 using Windows.UI.Xaml.Controls;
-using WinTube.ViewModels;
 
-namespace WinTube.Services
+namespace WinTube.Services;
+
+public class NavigationService
 {
-    public class NavigationService : BindableBase
+    private Frame _contentFrame;
+    private Frame _overlayFrame;
+
+    public bool CanGoBack => _contentFrame.CanGoBack || null != _overlayFrame.Content;
+
+    public NavigationService()
     {
-        private Frame _contentFrame;
+        SystemNavigationManager.GetForCurrentView().BackRequested += OnBackRequested;
+    }
 
-        public bool CanGoBack => _contentFrame.CanGoBack;
+    public void Initialize(Frame contentFrame, Frame overlayFrame)
+    {
+        _contentFrame = contentFrame;
+        _overlayFrame = overlayFrame;
+    }
 
-        public void Initialize(Frame contentFrame) => _contentFrame = contentFrame;
+    private void OnBackRequested(object sender, BackRequestedEventArgs e)
+    {
+        if (!CanGoBack)
+            return;
 
-        public void NavigateTo(Type pageType, object parameter = null)
-        {
-            if (_contentFrame.SourcePageType != pageType)
-                _contentFrame.Navigate(pageType, parameter);
-        }
+        GoBack();
+        e.Handled = true;
+    }
 
-        public void GoBack()
-        {
-            if (_contentFrame.CanGoBack)
-                _contentFrame.GoBack();
-        }
+    public void NavigateTo(Type pageType, object parameter = null)
+    {
+        if (_contentFrame.SourcePageType != pageType)
+            _contentFrame.Navigate(pageType, parameter);
+    }
+
+    public void OpenOverlay(Type pageType, object parameter = null) => _overlayFrame.Navigate(pageType, parameter);
+
+    public void GoBack()
+    {
+        // first close overlay if exists
+        if (null != _overlayFrame.Content)
+            _overlayFrame.Content = null;
+        else if (_contentFrame.CanGoBack)
+            _contentFrame.GoBack();
     }
 }

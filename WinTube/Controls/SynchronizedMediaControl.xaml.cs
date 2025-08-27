@@ -7,6 +7,7 @@ using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
+using Windows.UI.Xaml.Media;
 using WinTube.Model;
 
 namespace WinTube.Controls
@@ -62,6 +63,19 @@ namespace WinTube.Controls
                 typeof(SynchronizedMediaControl),
                 new PropertyMetadata(null));
 
+        public ImageSource PosterSource
+        {
+            get => (ImageSource)GetValue(PosterSourceProperty);
+            set => SetValue(PosterSourceProperty, value);
+        }
+
+        public static readonly DependencyProperty PosterSourceProperty =
+            DependencyProperty.Register(
+                nameof(PosterSource),
+                typeof(ImageSource),
+                typeof(SynchronizedMediaControl),
+                new PropertyMetadata(null, OnPosterSourceChanged));
+
         public SynchronizedMediaControl()
         {
             InitializeComponent();
@@ -106,6 +120,12 @@ namespace WinTube.Controls
             mediaTransportControls.AudioStreamChanged += OnAudioStreamChanged;
             mediaTransportControls.VideoStreamChanged += OnVideoStreamChanged;
             mediaTransportControls.CaptionChanged += OnCaptionChanged;
+        }
+
+        private static void OnPosterSourceChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        {
+            if (d is SynchronizedMediaControl control)
+                control.videoPlayerElement.PosterSource = e.NewValue as ImageSource;
         }
 
         private async void OnPositionChanged(MediaTimelineController sender, object args)

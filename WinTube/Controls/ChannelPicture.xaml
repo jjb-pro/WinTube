@@ -6,14 +6,13 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:WinTube.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:Height="64"
+    d:Width="64"
     mc:Ignorable="d">
 
-    <Rectangle
-        Width="{x:Bind Size, Mode=OneWay}"
-        Height="{x:Bind Size, Mode=OneWay}"
-        RadiusX="10">
-        <Rectangle.Fill>
-            <ImageBrush ImageSource="{x:Bind ImageSource, Mode=OneWay}" />
-        </Rectangle.Fill>
-    </Rectangle>
+    <Ellipse Width="{x:Bind Size, Mode=OneWay}" Height="{x:Bind Size, Mode=OneWay}">
+        <Ellipse.Fill>
+            <ImageBrush d:ImageSource="/Assets/Template/temp-channel.png" ImageSource="{x:Bind ImageSource, Mode=OneWay}" />
+        </Ellipse.Fill>
+    </Ellipse>
 </UserControl>

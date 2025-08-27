@@ -1,6 +1,8 @@
 using AsyncAwaitBestPractices;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
@@ -14,9 +16,20 @@ using YoutubeExplode.Videos;
 
 namespace WinTube.Model.Observable;
 
-public class ObservableVideoSearchResult : ObservableSearchResult
+public partial class ObservableVideoSearchResult : ObservableSearchResult
 {
     private static readonly HttpClient _thumbnailClient = new();
+
+    public ObservableVideoSearchResult(YoutubeClient client, VideoSearchResult videoSearchResult)
+    {
+        VideoId = videoSearchResult.Id;
+        Title = videoSearchResult.Title;
+        ChannelTitle = videoSearchResult.Author.ChannelTitle;
+        Duration = videoSearchResult.Duration;
+
+        FetchThumbnail(videoSearchResult.Thumbnails.OrderByDescending(t => t.Resolution.Area).First().Url).SafeFireAndForget();
+        FetchChannelPicture(client, videoSearchResult.Author.ChannelId).SafeFireAndForget();
+    }
 
     public VideoId VideoId { get; }
 
@@ -25,52 +38,34 @@ public class ObservableVideoSearchResult : ObservableSearchResult
 
     public TimeSpan? Duration { get; }
 
-    private WriteableBitmap _thumbnail;
-    public override WriteableBitmap Thumbnail
-    {
-        get => _thumbnail;
-        set => SetProperty(ref _thumbnail, value);
-    }
-
-    private BitmapImage _channelPicture;
-    public override BitmapImage ChannelPicture
-    {
-        get => _channelPicture;
-        set => SetProperty(ref _channelPicture, value);
-    }
-
-    public ObservableVideoSearchResult(YoutubeClient client, VideoSearchResult videoSearchResult)
-    {
-        VideoId = videoSearchResult.Id;
-
-        Title = videoSearchResult.Title;
-        ChannelTitle = videoSearchResult.Author.ChannelTitle;
-
-        Duration = videoSearchResult.Duration;
-
-        FetchThumbnail(videoSearchResult.Thumbnails.First().Url).SafeFireAndForget();
-        FetchChannelPicture(client, videoSearchResult.Author.ChannelId).SafeFireAndForget();
-    }
+    [ObservableProperty] private WriteableBitmap _thumbnail;
+    [ObservableProperty] private BitmapImage _channelPicture;
 
     private async Task FetchChannelPicture(YoutubeClient client, ChannelId id)
     {
         var channel = await client.Channels.GetAsync(id);
-        ChannelPicture = new BitmapImage(new Uri(channel.Thumbnails.OrderByDescending(t => t.Resolution.Area).First().Url));
+        ChannelPicture = new BitmapImage(new Uri(channel.Thumbnails.OrderBy(t => t.Resolution.Area).First().Url));
     }
 
     private async Task FetchThumbnail(string url)
     {
         var bytes = await _thumbnailClient.GetByteArrayAsync(url);
 
-        var webp = new WebPDecoder();
-        var pixelData = (await webp.DecodeBgraAsync(bytes)).ToArray();
+        try
+        {
+            var webp = new WebPDecoder();
+            var size = await webp.GetSizeAsync(bytes);
+            var pixelData = (await webp.DecodeBgraAsync(bytes)).ToArray();
 
-        var size = await webp.GetSizeAsync(bytes);
-        var bitmap = new WriteableBitmap((int)size.Width, (int)size.Height);
+            var bitmap = new WriteableBitmap((int)size.Width, (int)size.Height);
+            using var stream = bitmap.PixelBuffer.AsStream();
+            await stream.WriteAsync(pixelData, 0, pixelData.Length);
 
-        var stream = bitmap.PixelBuffer.AsStream();
-        await stream.WriteAsync(pixelData, 0, pixelData.Length);
-
-        Thumbnail = bitmap;
+            Thumbnail = bitmap;
+        }
+        catch(Exception ex)
+        {
+            Debug.WriteLine($"Failed to decode WebP image: {ex.Message}");
+        }
     }
 }
