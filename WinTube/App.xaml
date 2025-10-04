@@ -2,6 +2,7 @@
     x:Class="WinTube.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:WinTube.Converters"
     xmlns:local="using:WinTube"
     RequestedTheme="Dark">
 
@@ -9,9 +10,11 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="/Themes/TransparentButtonStyle.xaml" />
+                <ResourceDictionary Source="/Themes/ReactionButtonStyle.xaml" />
             </ResourceDictionary.MergedDictionaries>
 
             <SolidColorBrush x:Key="AppBackgroundBrush" Color="#FF1B1C1E" />
+            <converters:NullToVisibilityConverter x:Key="NullToVisibilityConverter" />
         </ResourceDictionary>
     </Application.Resources>
 </Application>

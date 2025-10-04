@@ -1,0 +1,46 @@
+<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:controls="using:WinTube.Controls">
+    <Style TargetType="controls:ReactionButton">
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="controls:ReactionButton">
+                    <Button
+                        Command="{TemplateBinding Command}"
+                        Foreground="{ThemeResource ApplicationForegroundThemeBrush}"
+                        Style="{StaticResource TextBlockButtonStyle}">
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+                            <FontIcon
+                                HorizontalAlignment="Center"
+                                FontSize="20"
+                                Glyph="{TemplateBinding IconGlyph}" />
+
+                            <Border
+                                Grid.Row="1"
+                                Margin="0,4,0,0"
+                                CornerRadius="4">
+                                <controls:Shimmer MinWidth="30" Visibility="{Binding Description, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource NullToVisibilityConverter}}" />
+                            </Border>
+
+                            <TextBlock
+                                Grid.Row="1"
+                                Margin="0,4,0,0"
+                                FontSize="10"
+                                Foreground="{ThemeResource ApplicationSecondaryForegroundThemeBrush}"
+                                MaxLines="1"
+                                Style="{StaticResource CaptionTextBlockStyle}"
+                                Text="{TemplateBinding Description}" />
+                        </Grid>
+                    </Button>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+</ResourceDictionary>

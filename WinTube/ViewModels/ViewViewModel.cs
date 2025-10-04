@@ -9,6 +9,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Windows.UI.Xaml.Media;
 using WinTube.Model;
+using WinTube.Model.Observable;
 using WinTube.Services;
 using YoutubeExplode;
 using YoutubeExplode.Videos;
@@ -16,13 +17,13 @@ using YoutubeExplode.Videos.Streams;
 
 namespace WinTube.ViewModels;
 
-public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedMessage>
+public partial class ViewViewModel : ObservableRecipient, IRecipient<VideoSelectedMessage>
 {
     private readonly YoutubeClient _client;
     private readonly NavigationService _navigationService;
 
     private Uri? _videoUri;
-    public event EventHandler<ShareRequest> ShareRequested;
+    public event EventHandler<ShareRequest>? ShareRequested;
 
     public ObservableCollection<NamedMediaSource> AudioStreams { get; } = [];
     public ObservableCollection<NamedMediaSource> VideoStreams { get; } = [];
@@ -31,27 +32,26 @@ public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedM
     [ObservableProperty] private bool _isLive;
     [ObservableProperty] private Uri? _livestreamSource;
 
-    [ObservableProperty] private string _title;
+    [ObservableProperty] private string? _title;
     [ObservableProperty] private ImageSource? _posterSource;
 
-    [ObservableProperty] private string _channelTitle;
-    [ObservableProperty] private Uri _channelPicture;
+    [ObservableProperty] private string? _channelTitle;
+    [ObservableProperty] private Uri? _channelPicture;
 
-    [ObservableProperty] private long _likeCount;
+    [ObservableProperty] private long? _likeCount;
 
     [ObservableProperty] private DateTimeOffset _uploadDate;
-    [ObservableProperty] private long _viewCount;
-    [ObservableProperty] private string _description;
+    [ObservableProperty] private long? _viewCount;
+    [ObservableProperty] private string? _description;
 
     [ObservableProperty] private bool _isLoading = true;
-
 
     public ViewViewModel(YoutubeClient client, NavigationService navigationService)
     {
         _client = client;
         _navigationService = navigationService;
 
-        WeakReferenceMessenger.Default.RegisterAll(this);
+        IsActive = true;
     }
 
     public async void Receive(VideoSelectedMessage message)
@@ -133,7 +133,7 @@ public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedM
             if (streamInfo.IsAudioLanguageDefault == true)
                 name += " (original language)";
 
-            AudioStreams.Add(new NamedMediaSource(name, async () => (await _client.Videos.Streams.GetAsync(streamInfo)).AsRandomAccessStream()));
+            AudioStreams.Add(new NamedMediaSource(name, streamInfo.Container.Name, async () => (await _client.Videos.Streams.GetAsync(streamInfo)).AsRandomAccessStream()));
         }
     }
 
@@ -145,12 +145,20 @@ public partial class ViewViewModel : ObservableObject, IRecipient<VideoSelectedM
             .ToList();
 
         foreach (var streamInfo in streamInfos)
-            VideoStreams.Add(new NamedMediaSource($"{streamInfo.VideoQuality} ({streamInfo.Container.Name})", async () => (await _client.Videos.Streams.GetAsync(streamInfo)).AsRandomAccessStream()));
+            VideoStreams.Add(new NamedMediaSource(
+                $"{streamInfo.VideoQuality} ({streamInfo.Container.Name})", streamInfo.Container.Name,
+                async () => (await _client.Videos.Streams.GetAsync(streamInfo)).AsRandomAccessStream())
+        );
     }
 
     [RelayCommand]
     private void OnShare() => ShareRequested?.Invoke(this, new(Title, Description, _videoUri));
 
     [RelayCommand]
-    private void OnBack() => _navigationService.GoBack();
+    private void OnBack()
+    {
+        _navigationService.GoBack();
+
+        WeakReferenceMessenger.Default.Send(new ListModeChangeMessage(false));
+    }
 }

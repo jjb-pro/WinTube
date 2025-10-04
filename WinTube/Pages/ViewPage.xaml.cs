@@ -40,7 +40,7 @@ namespace WinTube.Pages
 
         private void OnDataRequested(DataTransferManager sender, DataRequestedEventArgs args)
         {
-            if (null == _shareData)
+            if (null == _shareData || null == _shareData.Uri)
                 return;
 
             var request = args.Request;

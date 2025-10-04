@@ -4,8 +4,10 @@ using Windows.Storage.Streams;
 
 namespace WinTube.Model;
 
-public class NamedMediaSource(string name, Func<Task<IRandomAccessStream>> getStreamCallback) : NamedSource(name)
+public class NamedMediaSource(string name, string containerType, Func<Task<IRandomAccessStream>> getStreamCallback) : NamedSource(name)
 {
+    public readonly string ContainerType = containerType;
+
     public readonly Func<Task<IRandomAccessStream>> GetStreamCallback = getStreamCallback;
 }
 

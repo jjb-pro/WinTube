@@ -1,4 +1,3 @@
-#nullable enable
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Threading;
@@ -11,10 +10,14 @@ using YoutubeExplode;
 
 namespace WinTube.ViewModels;
 
-public partial class SearchViewModel : ObservableObject, IRecipient<SearchRequestedMessage>
+#nullable enable
+
+public partial class SearchViewModel : ObservableObject, IRecipient<SearchRequestedMessage>, IRecipient<ListModeChangeMessage>
 {
     private readonly YoutubeClient _client;
     private readonly NavigationService _navigationService;
+
+    [ObservableProperty] private bool _isCompactMode;
 
     [ObservableProperty] private bool _isProgressBarVisible;
     [ObservableProperty] private bool _isOffline;
@@ -43,12 +46,15 @@ public partial class SearchViewModel : ObservableObject, IRecipient<SearchReques
         SearchResults = new IncrementalVideoSearchCollection(_client, message.Query, _cts.Token);
     }
 
+    public void Receive(ListModeChangeMessage message) => IsCompactMode = message.IsCompactMode;
+
     public void OnVideoSelected()
     {
         if (null == SelectedVideo)
             return;
 
-        _navigationService.OpenOverlay(typeof(ViewPage));
+        _navigationService.OpenPlayer(typeof(ViewPage));
+        IsCompactMode = true;
         WeakReferenceMessenger.Default.Send(new VideoSelectedMessage(SelectedVideo));
     }
 }

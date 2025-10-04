@@ -7,9 +7,9 @@ namespace WinTube.Services;
 public class NavigationService
 {
     private Frame _contentFrame;
-    private Frame _overlayFrame;
+    private Frame _playerFrame;
 
-    public bool CanGoBack => _contentFrame.CanGoBack || null != _overlayFrame.Content;
+    public bool CanGoBack => _contentFrame.CanGoBack || null != _playerFrame.Content;
 
     public NavigationService()
     {
@@ -19,7 +19,7 @@ public class NavigationService
     public void Initialize(Frame contentFrame, Frame overlayFrame)
     {
         _contentFrame = contentFrame;
-        _overlayFrame = overlayFrame;
+        _playerFrame = overlayFrame;
     }
 
     private void OnBackRequested(object sender, BackRequestedEventArgs e)
@@ -37,13 +37,13 @@ public class NavigationService
             _contentFrame.Navigate(pageType, parameter);
     }
 
-    public void OpenOverlay(Type pageType, object parameter = null) => _overlayFrame.Navigate(pageType, parameter);
+    public void OpenPlayer(Type pageType, object parameter = null) => _playerFrame.Navigate(pageType, parameter);
 
     public void GoBack()
     {
         // first close overlay if exists
-        if (null != _overlayFrame.Content)
-            _overlayFrame.Content = null;
+        if (null != _playerFrame.Content)
+            _playerFrame.Content = null;
         else if (_contentFrame.CanGoBack)
             _contentFrame.GoBack();
     }

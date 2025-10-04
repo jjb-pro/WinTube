@@ -14,7 +14,7 @@ public sealed partial class MainPage : Page
     public MainPage()
     {
         InitializeComponent();
-        ((App)Application.Current).Container.GetService<NavigationService>().Initialize(contentFrame, overlayFrame);
+        ((App)Application.Current).Container.GetService<NavigationService>().Initialize(contentFrame, playerFrame);
 
         contentFrame.Navigated += OnContentFrameNavigated;
     }
