@@ -11,14 +11,16 @@
         Simply take the portion of code that corresponds to the MediaTransportControl and bring it in to your app just like we have done in this sample
     -->
 
-    <Style TargetType="local:Shimmer">
+    <!--<Style TargetType="local:Shimmer">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Stretch" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:Shimmer">
-                    <!--  Border named "Shape" that fills the control; composition attaches to it  -->
+    -->
+    <!--  Border named "Shape" that fills the control; composition attaches to it  -->
+    <!--
                     <Border
                         x:Name="Shape"
                         HorizontalAlignment="Stretch"
@@ -28,7 +30,7 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-    </Style>
+    </Style>-->
 
     <Style TargetType="local:CustomMediaTransportControls">
         <Setter Property="IsTabStop" Value="False" />

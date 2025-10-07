@@ -22,7 +22,7 @@
             DefaultTemplate="{StaticResource DefaultTemplate}" />
 
         <DataTemplate x:Key="CompactTemplate" x:DataType="observableModel:ObservableVideoSearchResult">
-            <Grid Padding="0,10">
+            <Grid Padding="16,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition />
@@ -163,7 +163,6 @@
         <ListView
             x:Name="searchResultsListView"
             Grid.Row="1"
-            Padding="16,0,16,0"
             ItemTemplateSelector="{StaticResource SearchResultTemplateSelector}"
             ItemsSource="{x:Bind ViewModel.SearchResults, Mode=OneWay}"
             SelectedItem="{x:Bind ViewModel.SelectedVideo, Mode=TwoWay}"

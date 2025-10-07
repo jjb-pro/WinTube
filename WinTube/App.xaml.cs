@@ -9,6 +9,9 @@ using Windows.UI.Xaml.Navigation;
 using WinTube.Services;
 using WinTube.Pages;
 using YoutubeExplode;
+using System.Reflection;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace WinTube
 {
@@ -24,8 +27,22 @@ namespace WinTube
 
         private static ServiceProvider RegisterServices()
         {
+            var httpClient = new HttpClient()
+            {
+                DefaultRequestHeaders =
+                {
+                    UserAgent =
+                    {
+                        new ProductInfoHeaderValue(
+                            "YoutubeDownloader",
+                            Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)
+                        ),
+                    },
+                },
+            };
+
             return new ServiceCollection()
-                .AddSingleton<YoutubeClient>()
+                .AddSingleton(_ => new YoutubeClient(httpClient))
                 .AddSingleton<NavigationService>()
                 .AddTransient<MainViewModel>()
                 .AddTransient<SearchViewModel>()
