@@ -2,7 +2,7 @@
 <Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <LangVersion>13.0</LangVersion>
+    <LangVersion>preview</LangVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <Nullable>enable</Nullable>
@@ -28,7 +28,7 @@
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
     <AppxBundle>Always</AppxBundle>
-    <AppxBundlePlatforms>x64</AppxBundlePlatforms>
+    <AppxBundlePlatforms>arm</AppxBundlePlatforms>
     <HoursBetweenUpdateChecks>0</HoursBetweenUpdateChecks>
     <AppxSymbolPackageEnabled>True</AppxSymbolPackageEnabled>
     <PackageCertificateKeyFile />
@@ -142,9 +142,11 @@
       <DependentUpon>FontIcon.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\ReactionButton.cs" />
-    <Compile Include="Controls\Shimmer.cs" />
     <Compile Include="Controls\Shimmer.xaml.cs">
       <DependentUpon>Shimmer.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\SyncAudioVideoControl.xaml.cs">
+      <DependentUpon>SyncAudioVideoControl.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\SynchronizedMediaControl.xaml.cs">
       <DependentUpon>SynchronizedMediaControl.xaml</DependentUpon>
@@ -161,7 +163,6 @@
     <Compile Include="Converters\ShortDateOffsetConverter.cs" />
     <Compile Include="Model\IncrementalVideoSearchCollection.cs" />
     <Compile Include="Model\ListModeChangeMessage.cs" />
-    <Compile Include="Model\NamedCaptionSource.cs" />
     <Compile Include="Model\ShareRequest.cs" />
     <Compile Include="Pages\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
@@ -258,10 +259,14 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\SynchronizedMediaControl.xaml">
+    <Page Include="Controls\SyncAudioVideoControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
+    <None Include="Controls\SynchronizedMediaControl.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
-    </Page>
+    </None>
     <Page Include="Controls\VideoDurationBadge.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -321,7 +326,7 @@
       <Version>3.6.1</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
-      <Version>9.0.9</Version>
+      <Version>9.0.10</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.14</Version>
@@ -338,7 +343,7 @@
       <Version>1.28.2</Version>
     </PackageReference>
     <PackageReference Include="YoutubeExplode">
-      <Version>6.5.5</Version>
+      <Version>6.5.6</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

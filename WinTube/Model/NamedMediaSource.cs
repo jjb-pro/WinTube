@@ -1,17 +1,9 @@
-using System;
-using System.Threading.Tasks;
-using Windows.Storage.Streams;
-
 namespace WinTube.Model;
 
-public class NamedMediaSource(string name, string containerType, Func<Task<IRandomAccessStream>> getStreamCallback) : NamedSource(name)
+public class NamedMediaSource(string name, string containerType, string url)
 {
     public readonly string ContainerType = containerType;
+    public readonly string Url = url;
 
-    public readonly Func<Task<IRandomAccessStream>> GetStreamCallback = getStreamCallback;
-}
-
-public abstract class NamedSource(string name)
-{
     public override string ToString() => name;
 }

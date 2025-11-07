@@ -1,0 +1,190 @@
+﻿<UserControl
+    x:Class="WinTube.Controls.SyncAudioVideoControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:WinTube.Controls"
+    xmlns:lvs="using:LibVLCSharp.Platforms.UWP"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="using:WinTube.Model"
+    d:DesignHeight="225"
+    d:DesignWidth="400"
+    RequestedTheme="Dark"
+    mc:Ignorable="d">
+
+
+    <lvs:VideoView
+        x:Name="videoPlayerElement"
+        Width="200"
+        Height="282"
+        HorizontalAlignment="Stretch"
+        Background="Blue"
+        Initialized="OnVideoPlayerElement_Initialized" />
+
+    <!--<UserControl.Resources>
+        <Flyout x:Key="AudioFlyout">
+            <ListView ItemsSource="{x:Bind AudioStreams}" SelectedItem="{x:Bind SelectedAudioSource, Mode=TwoWay}">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="model:NamedMediaSource">
+                        <TextBlock Text="{x:Bind}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Flyout>
+        <Flyout x:Key="SubtitleFlyout">
+            <ListView ItemsSource="{x:Bind SubtitleSelections}" SelectedItem="{x:Bind SelectedSubtitle, Mode=TwoWay}">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="model:SelectableMediaSource">
+                        <TextBlock Text="{x:Bind Name}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Flyout>-->
+    <!--
+        <Flyout x:Key="QualityFlyout">
+            <ListView ItemsSource="{x:Bind VideoStreams}" SelectedItem="{x:Bind SelectedVideoSource, Mode=TwoWay}">
+                <ListView.ItemTemplate>
+                    <DataTemplate x:DataType="model:NamedMediaSource">
+                        <TextBlock Text="{x:Bind}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </Flyout>
+        <Style x:Key="TransparentPathIconButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+    </UserControl.Resources>
+
+    <Grid
+        x:Name="mainGrid"
+        Background="AliceBlue"
+        PointerEntered="MainGrid_PointerMoved"
+        PointerMoved="MainGrid_PointerMoved">
+
+        <Grid
+            x:Name="overlays"
+            Canvas.ZIndex="1"
+            IsHitTestVisible="True"
+            Opacity="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel
+                Grid.Column="2"
+                Margin="0,16,16,12"
+                HorizontalAlignment="Right"
+                Orientation="Horizontal">
+
+                <Button Flyout="{StaticResource AudioFlyout}" Style="{StaticResource TransparentPathIconButtonStyle}">
+                    <FontIcon
+                        VerticalAlignment="Top"
+                        FontSize="14"
+                        Glyph="&#xF15F;" />
+                </Button>
+                <Button Margin="24,0,0,0" Style="{StaticResource TransparentPathIconButtonStyle}">
+                    <FontIcon
+                        VerticalAlignment="Top"
+                        FontSize="14"
+                        Glyph="&#xE995;" />
+                </Button>
+                <Button
+                    Margin="24,0,0,0"
+                    Flyout="{StaticResource QualityFlyout}"
+                    Style="{StaticResource TransparentPathIconButtonStyle}">
+                    <FontIcon
+                        VerticalAlignment="Top"
+                        FontSize="14"
+                        Glyph="&#xE713;" />
+                </Button>
+            </StackPanel>
+
+            <StackPanel
+                Grid.Row="1"
+                Grid.Column="1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+                <Button
+                    x:Name="playPauseButton"
+                    Click="OnPlayPauseClicked"
+                    Style="{StaticResource TransparentPathIconButtonStyle}">
+                    <FontIcon
+                        x:Name="playPauseIcon"
+                        FontSize="48"
+                        Glyph="&#xE768;" />
+                </Button>
+            </StackPanel>
+
+            <TextBlock
+                x:Name="timeElapsedText"
+                Grid.Row="2"
+                Margin="16,0,0,12"
+                VerticalAlignment="Bottom"
+                d:Text="1:23" />
+
+            <StackPanel
+                Grid.Row="2"
+                Grid.Column="2"
+                Margin="0,0,16,12"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                Orientation="Horizontal">
+                <TextBlock x:Name="timeRemainingText" d:Text="4:08" />
+
+                <Button Click="OnFullscreenButtonClicked" Style="{StaticResource TransparentPathIconButtonStyle}">
+                    <FontIcon
+                        Margin="12,0,0,0"
+                        FontSize="14"
+                        Glyph="&#xE740;" />
+                </Button>
+            </StackPanel>
+
+            <Rectangle
+                Grid.ColumnSpan="3"
+                Height="80"
+                VerticalAlignment="Bottom"
+                IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                        <GradientStop Offset="0.0" Color="#00000000" />
+                        <GradientStop Offset="1.0" Color="#E6000000" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Rectangle
+                Grid.Row="2"
+                Grid.ColumnSpan="3"
+                Height="80"
+                VerticalAlignment="Bottom"
+                IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                        <GradientStop Offset="0.0" Color="#E6000000" />
+                        <GradientStop Offset="1.0" Color="#00000000" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+        </Grid>
+
+        <Slider
+            x:Name="seekSlider"
+            Grid.Row="3"
+            Grid.ColumnSpan="3"
+            Background="LightGray"
+            Foreground="Red"
+            Maximum="100"
+            Minimum="0"
+            ValueChanged="SeekSlider_ValueChanged" />
+    </Grid>-->
+</UserControl>

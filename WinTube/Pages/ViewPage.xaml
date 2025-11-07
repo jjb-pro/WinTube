@@ -42,12 +42,15 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <controls:SynchronizedMediaControl
+            <controls:SyncAudioVideoControl
                 AudioStreams="{x:Bind ViewModel.AudioStreams, Mode=OneWay}"
-                CaptionSources="{x:Bind ViewModel.CaptionSources, Mode=OneWay}"
-                PosterSource="{x:Bind ViewModel.PosterSource, Mode=OneWay, TargetNullValue=/Assets/Template/Thumb_Default.png}"
                 VideoStreams="{x:Bind ViewModel.VideoStreams, Mode=OneWay}"
                 Visibility="{x:Bind ViewModel.IsLive, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
+
+            <!--
+                CaptionSources="{x:Bind ViewModel.CaptionSources, Mode=OneWay}"
+                PosterSource="{x:Bind ViewModel.PosterSource, Mode=OneWay, TargetNullValue=/Assets/Template/Thumb_Default.png}"
+            -->
 
             <controls:BindableMediaPlayerElement
                 AreTransportControlsEnabled="True"

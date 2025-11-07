@@ -13,7 +13,7 @@ namespace WinTube.Controls;
 
 [DependencyProperty<ObservableCollection<NamedMediaSource>>("AudioStreams", DefaultValueExpression = "[]")]
 [DependencyProperty<ObservableCollection<NamedMediaSource>>("VideoStreams", DefaultValueExpression = "[]")]
-[DependencyProperty<ObservableCollection<NamedCaptionSource>>("CaptionSources", DefaultValueExpression = "[]")]
+[DependencyProperty<ObservableCollection<NamedMediaSource>>("CaptionSources", DefaultValueExpression = "[]")]
 public sealed partial class CustomMediaTransportControls : MediaTransportControls
 {
     public event EventHandler<RoutedEventArgs> PlayPauseButtonClicked;
