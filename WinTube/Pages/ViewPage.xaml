@@ -43,9 +43,9 @@
             </Grid.RowDefinitions>
 
             <controls:SyncAudioVideoControl
+                Height="300"
                 AudioStreams="{x:Bind ViewModel.AudioStreams, Mode=OneWay}"
-                VideoStreams="{x:Bind ViewModel.VideoStreams, Mode=OneWay}"
-                Visibility="{x:Bind ViewModel.IsLive, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
+                VideoStreams="{x:Bind ViewModel.VideoStreams, Mode=OneWay}" />
 
             <!--
                 CaptionSources="{x:Bind ViewModel.CaptionSources, Mode=OneWay}"

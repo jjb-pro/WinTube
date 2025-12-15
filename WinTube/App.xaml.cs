@@ -1,17 +1,14 @@
-﻿using WinTube.ViewModels;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using System;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Navigation;
-using WinTube.Services;
 using WinTube.Pages;
+using WinTube.Services;
+using WinTube.ViewModels;
 using YoutubeExplode;
-using System.Reflection;
-using System.Net.Http;
-using System.Net.Http.Headers;
 
 namespace WinTube
 {
@@ -27,22 +24,8 @@ namespace WinTube
 
         private static ServiceProvider RegisterServices()
         {
-            var httpClient = new HttpClient()
-            {
-                DefaultRequestHeaders =
-                {
-                    UserAgent =
-                    {
-                        new ProductInfoHeaderValue(
-                            "YoutubeDownloader",
-                            Assembly.GetExecutingAssembly().GetName().Version?.ToString(3)
-                        ),
-                    },
-                },
-            };
-
             return new ServiceCollection()
-                .AddSingleton(_ => new YoutubeClient(httpClient))
+                .AddSingleton(_ => new YoutubeClient()) // ToDo: inject account cookies
                 .AddSingleton<NavigationService>()
                 .AddTransient<MainViewModel>()
                 .AddTransient<SearchViewModel>()

@@ -1,8 +1,8 @@
 ﻿using AsyncAwaitBestPractices;
 using DependencyPropertyGenerator;
+using LibVLCSharp.Platforms.UWP;
 using LibVLCSharp.Shared;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
@@ -13,7 +13,7 @@ using Windows.Media;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media.Animation;
+using Windows.UI.Xaml.Navigation;
 using WinTube.Model;
 using YoutubeExplode;
 
@@ -87,12 +87,6 @@ public sealed partial class SyncAudioVideoControl : UserControl
         CreateMediaAsync().SafeFireAndForget(ex => Debug.WriteLine($"Could not create media player: {ex}"));
     }
 
-
-
-
-
-
-
     private void OnLoaded(object sender, RoutedEventArgs e) => ResetTimer();
 
     private void OnUnloaded(object sender, RoutedEventArgs e)
@@ -117,55 +111,20 @@ public sealed partial class SyncAudioVideoControl : UserControl
         //}
     }
 
-    private void OnVideoPlayerElement_Initialized(object sender, LibVLCSharp.Platforms.UWP.InitializedEventArgs e)
+    private void OnVideoViewInitialized(object sender, InitializedEventArgs e)
     {
-        _libVLC = new LibVLC(true, e.SwapChainOptions);
+        _libVLC = new LibVLC(false, e.SwapChainOptions);
+        _mediaPlayer = new MediaPlayer(_libVLC);
+
+        videoView.MediaPlayer = _mediaPlayer;
     }
 
     private async Task CreateMediaAsync()
     {
-        if (_libVLC == null || SelectedVideoSource == null)
-            return;
+        using var media = new Media(_libVLC, SelectedVideoSource.Url, FromType.FromLocation);
+        media.AddOption($":input-slave={SelectedAudioSource.Url}");
 
-        _currentTimeMs = _mediaPlayer?.Time ?? 0;
-
-        DisposePlayer();
-
-        var media = new Media(_libVLC, SelectedVideoSource.Url, FromType.FromLocation);
-
-        if (SelectedAudioSource != null)
-        {
-            media.AddOption($":input-slave={SelectedAudioSource.Url}");
-        }
-
-        //if (SelectedSubtitle?.Source != null)
-        //{
-        //    media.AddOption($":sub-file={SelectedSubtitle.Source.Url}");
-        //}
-
-        _mediaPlayer = new MediaPlayer(media);
-        _mediaPlayer.TimeChanged += OnTimeChanged;
-        _mediaPlayer.LengthChanged += OnLengthChanged;
-        _mediaPlayer.Playing += OnPlaying;
-        videoPlayerElement.MediaPlayer = _mediaPlayer;
-
-
-        _mediaPlayer.EncounteredError += (s, ev) =>
-        {
-            System.Diagnostics.Debug.WriteLine("LibVLC: EncounteredError");
-        };
-        _mediaPlayer.Stopped += (s, ev) =>
-        {
-            System.Diagnostics.Debug.WriteLine("LibVLC: Stopped");
-        };
-        _mediaPlayer.EndReached += (s, ev) =>
-        {
-            System.Diagnostics.Debug.WriteLine("LibVLC: EndReached");
-        };
-
-        _mediaPlayer.Play();
-
-        //UpdatePlayPauseIcon();
+        _mediaPlayer.Play(media);
     }
 
     private void OnPlaying(object sender, EventArgs e)
@@ -288,8 +247,8 @@ public sealed partial class SyncAudioVideoControl : UserControl
 
     private void HideTimer_Tick(object sender, object e)
     {
-    //    _fadeInStoryboard.Stop();
-    //    _fadeOutStoryboard.Begin();
+        //    _fadeInStoryboard.Stop();
+        //    _fadeOutStoryboard.Begin();
     }
 
     private void FadeOutStoryboard_Completed(object sender, object e)
@@ -308,6 +267,13 @@ public sealed partial class SyncAudioVideoControl : UserControl
             _mediaPlayer.Dispose();
             _mediaPlayer = null;
         }
+
+        _libVLC?.Dispose();
+    }
+
+    protected override void OnDisconnectVisualChildren()
+    {
+        base.OnDisconnectVisualChildren();
     }
 
     //protected override void OnVisibilityChanged(DependencyObject sender, Windows.UI.Xaml.DependencyPropertyChangedEventArgs args)

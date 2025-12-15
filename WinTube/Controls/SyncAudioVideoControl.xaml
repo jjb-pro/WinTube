@@ -12,14 +12,11 @@
     RequestedTheme="Dark"
     mc:Ignorable="d">
 
-
     <lvs:VideoView
-        x:Name="videoPlayerElement"
-        Width="200"
-        Height="282"
+        x:Name="videoView"
         HorizontalAlignment="Stretch"
-        Background="Blue"
-        Initialized="OnVideoPlayerElement_Initialized" />
+        VerticalAlignment="Stretch"
+        Initialized="OnVideoViewInitialized" />
 
     <!--<UserControl.Resources>
         <Flyout x:Key="AudioFlyout">
