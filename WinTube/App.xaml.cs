@@ -27,6 +27,7 @@ namespace WinTube
             return new ServiceCollection()
                 .AddSingleton(_ => new YoutubeClient()) // ToDo: inject account cookies
                 .AddSingleton<NavigationService>()
+                .AddSingleton<YoutubeSuggestionService>()
                 .AddTransient<MainViewModel>()
                 .AddTransient<SearchViewModel>()
                 .AddTransient<ViewViewModel>()

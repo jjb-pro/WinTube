@@ -7,6 +7,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="using:WinTube.Pages"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:model="using:WinTube.Model"
     xmlns:pages="using:WinTube.Pages"
     Background="{StaticResource AppBackgroundBrush}"
     Loaded="OnLoaded"
@@ -77,10 +78,31 @@
                     Grid.Column="1"
                     Margin="16,0,0,0"
                     VerticalAlignment="Center"
+                    ItemsSource="{x:Bind ViewModel.Suggestions, Mode=OneWay}"
                     PlaceholderText="Search YouTube ..."
                     QueryIcon="Find"
                     QuerySubmitted="{x:Bind ViewModel.OnQuerySubmitted}"
-                    Text="{x:Bind ViewModel.SearchText, Mode=TwoWay}" />
+                    Text="{x:Bind ViewModel.SearchText, Mode=TwoWay}"
+                    TextChanged="{x:Bind ViewModel.OnQueryChanged}">
+                    <AutoSuggestBox.ItemTemplate>
+                        <DataTemplate x:DataType="model:SuggestionResult">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition />
+                                    <ColumnDefinition Width="auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <controls:FontIcon Glyph="&#xE721;" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    Text="{x:Bind Text}" />
+                                <!--<Image Source="{x:Bind ThumbnailUrl}" />-->
+                            </Grid>
+                        </DataTemplate>
+                    </AutoSuggestBox.ItemTemplate>
+                </AutoSuggestBox>
             </Grid>
         </Grid>
 
