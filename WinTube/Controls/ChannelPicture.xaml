@@ -15,9 +15,11 @@
     </UserControl.Resources>
 
     <Grid>
-        <Border CornerRadius="{x:Bind Size, Mode=OneWay, Converter={StaticResource HalfValueConverter}}">
-            <local:Shimmer Width="{x:Bind Size, Mode=OneWay}" Height="{x:Bind Size, Mode=OneWay}" />
-        </Border>
+        <local:Shimmer
+            Width="{x:Bind Size, Mode=OneWay}"
+            Height="{x:Bind Size, Mode=OneWay}"
+            Radius="{x:Bind Size, Mode=OneWay, Converter={StaticResource HalfValueConverter}}" />
+
         <Ellipse
             Width="{x:Bind Size, Mode=OneWay}"
             Height="{x:Bind Size, Mode=OneWay}"

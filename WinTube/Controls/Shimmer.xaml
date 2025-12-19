@@ -23,45 +23,41 @@
         </ResourceDictionary>
     </UserControl.Resources>
 
-    <Grid>
-        <Border x:Name="ShimmerBorder">
-            <Grid>
-                <Rectangle Name="ShimmerRect" Opacity="0.6">
-                    <Rectangle.Fill>
-                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                            <GradientStop x:Name="gs1" Offset="0" Color="#00FFFFFF" />
-                            <GradientStop x:Name="gs2" Offset="0.25" Color="#80FFFFFF" />
-                            <GradientStop x:Name="gs3" Offset="0.5" Color="#00FFFFFF" />
-                        </LinearGradientBrush>
-                    </Rectangle.Fill>
-                </Rectangle>
-            </Grid>
+    <Grid x:Name="RootGrid">
+        <Rectangle x:Name="ShimmerRect" Opacity="0.6">
+            <Rectangle.Fill>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                    <GradientStop x:Name="gs1" Offset="0" Color="#00FFFFFF" />
+                    <GradientStop x:Name="gs2" Offset="0.25" Color="#80FFFFFF" />
+                    <GradientStop x:Name="gs3" Offset="0.5" Color="#00FFFFFF" />
+                </LinearGradientBrush>
+            </Rectangle.Fill>
+        </Rectangle>
 
-            <Border.Resources>
-                <Storyboard x:Key="ShimmerStoryboard" RepeatBehavior="Forever">
-                    <DoubleAnimation
-                        EnableDependentAnimation="True"
-                        Storyboard.TargetName="gs1"
-                        Storyboard.TargetProperty="Offset"
-                        From="-1"
-                        To="1"
-                        Duration="0:0:1" />
-                    <DoubleAnimation
-                        EnableDependentAnimation="True"
-                        Storyboard.TargetName="gs2"
-                        Storyboard.TargetProperty="Offset"
-                        From="-0.5"
-                        To="1.5"
-                        Duration="0:0:1" />
-                    <DoubleAnimation
-                        EnableDependentAnimation="True"
-                        Storyboard.TargetName="gs3"
-                        Storyboard.TargetProperty="Offset"
-                        From="0"
-                        To="2"
-                        Duration="0:0:1" />
-                </Storyboard>
-            </Border.Resources>
-        </Border>
+        <Grid.Resources>
+            <Storyboard x:Key="ShimmerStoryboard" RepeatBehavior="Forever">
+                <DoubleAnimation
+                    EnableDependentAnimation="True"
+                    Storyboard.TargetName="gs1"
+                    Storyboard.TargetProperty="Offset"
+                    From="-1"
+                    To="1"
+                    Duration="0:0:1" />
+                <DoubleAnimation
+                    EnableDependentAnimation="True"
+                    Storyboard.TargetName="gs2"
+                    Storyboard.TargetProperty="Offset"
+                    From="-0.5"
+                    To="1.5"
+                    Duration="0:0:1" />
+                <DoubleAnimation
+                    EnableDependentAnimation="True"
+                    Storyboard.TargetName="gs3"
+                    Storyboard.TargetProperty="Offset"
+                    From="0"
+                    To="2"
+                    Duration="0:0:1" />
+            </Storyboard>
+        </Grid.Resources>
     </Grid>
 </UserControl>

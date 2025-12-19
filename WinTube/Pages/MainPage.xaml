@@ -14,6 +14,7 @@
     mc:Ignorable="d">
     <Page.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:UriToImageSourceConverter x:Key="UriToImageSourceConverter" />
     </Page.Resources>
 
     <Grid>
@@ -39,9 +40,9 @@
                     <Image
                         Width="32"
                         VerticalAlignment="Center"
-                        Source="/Assets/Template/WinTube_Icon.png" />
+                        Source="/Assets/Template/icon_WinTube.png" />
                     <TextBlock
-                        Margin="4,0,0,3"
+                        Margin="8,0,0,3"
                         VerticalAlignment="Center"
                         Style="{StaticResource TitleTextBlockStyle}"
                         Text="WinTube" />
@@ -58,7 +59,7 @@
                         <controls:FontIcon Glyph="&#xEA8F;" />
                     </Button>
                     <Button Margin="24,0,0,0" Style="{StaticResource TransparentPathIconButtonStyle}">
-                        <controls:ChannelPicture ImageSource="/Assets/Template/temp-channel.png" Size="40" />
+                        <controls:ChannelPicture ImageSource="/Assets/Template/img_profile_default.png" Size="40" />
                     </Button>
                 </StackPanel>
             </Grid>
@@ -78,12 +79,18 @@
                     Grid.Column="1"
                     Margin="16,0,0,0"
                     VerticalAlignment="Center"
+                    HorizontalContentAlignment="Stretch"
                     ItemsSource="{x:Bind ViewModel.Suggestions, Mode=OneWay}"
                     PlaceholderText="Search YouTube ..."
                     QueryIcon="Find"
                     QuerySubmitted="{x:Bind ViewModel.OnQuerySubmitted}"
                     Text="{x:Bind ViewModel.SearchText, Mode=TwoWay}"
                     TextChanged="{x:Bind ViewModel.OnQueryChanged}">
+                    <AutoSuggestBox.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </AutoSuggestBox.ItemContainerStyle>
                     <AutoSuggestBox.ItemTemplate>
                         <DataTemplate x:DataType="model:SuggestionResult">
                             <Grid>
@@ -93,12 +100,23 @@
                                     <ColumnDefinition Width="auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <controls:FontIcon Glyph="&#xE721;" />
+                                <controls:FontIcon
+                                    Margin="0,2,0,0"
+                                    VerticalAlignment="Center"
+                                    Glyph="&#xE721;"
+                                    Size="18" />
                                 <TextBlock
                                     Grid.Column="1"
-                                    Margin="4,0,0,0"
-                                    Text="{x:Bind Text}" />
-                                <!--<Image Source="{x:Bind ThumbnailUrl}" />-->
+                                    Margin="8,0,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="{x:Bind Text}"
+                                    TextTrimming="CharacterEllipsis" />
+                                <Image
+                                    Grid.Column="2"
+                                    Height="32"
+                                    Margin="8,0,0,0"
+                                    HorizontalAlignment="Right"
+                                    Source="{x:Bind ThumbnailUrl, Converter={StaticResource UriToImageSourceConverter}}" />
                             </Grid>
                         </DataTemplate>
                     </AutoSuggestBox.ItemTemplate>

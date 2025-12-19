@@ -22,12 +22,12 @@
                                 FontSize="20"
                                 Glyph="{TemplateBinding IconGlyph}" />
 
-                            <Border
+                            <controls:Shimmer
                                 Grid.Row="1"
+                                MinWidth="30"
                                 Margin="0,4,0,0"
-                                CornerRadius="4">
-                                <controls:Shimmer MinWidth="30" Visibility="{Binding Description, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource NullToVisibilityConverter}}" />
-                            </Border>
+                                Radius="4"
+                                Visibility="{Binding Description, RelativeSource={RelativeSource TemplatedParent}, Converter={StaticResource NullToVisibilityConverter}}" />
 
                             <TextBlock
                                 Grid.Row="1"

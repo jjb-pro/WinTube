@@ -14,6 +14,8 @@ namespace WinTube.Services;
 public class YoutubeSuggestionService
 {
     private readonly HttpClient _client = new();
+    private readonly List<(string Query, IReadOnlyList<SuggestionResult> Results)> _cache = [];
+    private const int MaxEntries = 20;
 
     public YoutubeSuggestionService()
     {
@@ -24,31 +26,46 @@ public class YoutubeSuggestionService
 
     public async Task<IEnumerable<SuggestionResult>> GetSuggestionsAsync(string query, CancellationToken cancellationToken = default)
     {
-        var encoded = UrlEncoder.Default.Encode(query ?? string.Empty);
-        var uri = $"https://suggestqueries-clients6.youtube.com/complete/search?ds=yt&client=youtube&hl=en&gl=de&q={encoded}";
+        var (_, results) = _cache.Find(x => x.Query == query);
+        if (results is not null)
+            return results;
+
+        results = await FetchSuggestionsAsync(query, cancellationToken);
+
+        if (_cache.Count == MaxEntries)
+            _cache.RemoveAt(0);
+
+        _cache.Add((query, results));
+        return results;
+    }
+
+    private async Task<IReadOnlyList<SuggestionResult>> FetchSuggestionsAsync(string query, CancellationToken cancellationToken)
+    {
+        var encoded = UrlEncoder.Default.Encode(query);
+        var uri = $"https://suggestqueries-clients6.youtube.com/complete/search?ds=yt&client=youtube&q={encoded}";
 
         using var response = await _client.GetAsync(uri, cancellationToken).ConfigureAwait(false);
         response.EnsureSuccessStatusCode();
 
         var body = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-
         var start = body.IndexOf('[');
         var end = body.LastIndexOf(']');
 
-        if (start < 0 || end < 0 || end <= start)
+        if (start < 0 || end <= start)
             return [];
 
         var json = body.Substring(start, end - start + 1);
         using var doc = JsonDocument.Parse(json);
         var root = doc.RootElement;
 
-        var results = new List<SuggestionResult>();
         if (root.ValueKind != JsonValueKind.Array || root.GetArrayLength() < 2)
-            return results;
+            return [];
 
         var suggestions = root[1];
         if (suggestions.ValueKind != JsonValueKind.Array)
-            return results;
+            return [];
+
+        var results = new List<SuggestionResult>();
 
         foreach (var item in suggestions.EnumerateArray())
         {
@@ -56,7 +73,8 @@ public class YoutubeSuggestionService
                 continue;
 
             var text = item[0].GetString() ?? string.Empty;
-            var thumb = default(string);
+            string? thumb = null;
+
             if (item.GetArrayLength() > 3 && item[3].ValueKind == JsonValueKind.Object)
             {
                 var meta = item[3];

@@ -30,7 +30,7 @@
 
                 <Grid Margin="16,0,0,0">
                     <Border CornerRadius="4">
-                        <Image Source="{x:Bind Thumbnail, Mode=OneWay, TargetNullValue=/Assets/Template/Thumb_Default.png}" Stretch="Fill" />
+                        <Image Source="{x:Bind Thumbnail, Mode=OneWay, TargetNullValue=/Assets/Template/img_thumb_default.png}" Stretch="Fill" />
                     </Border>
                     <controls:VideoDurationBadge Duration="{x:Bind Duration}" />
                 </Grid>

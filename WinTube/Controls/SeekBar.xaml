@@ -1,0 +1,48 @@
+﻿<UserControl
+    x:Class="WinTube.Controls.SeekBar"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:WinTube.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    mc:Ignorable="d">
+
+    <Grid x:Name="RootGrid" Height="32">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Border
+            x:Name="TrackBackground"
+            Height="4"
+            VerticalAlignment="Center"
+            Background="Gray"
+            IsHitTestVisible="True"
+            PointerPressed="Track_PointerPressed" />
+
+        <Border
+            x:Name="TrackFill"
+            Width="0"
+            Height="4"
+            HorizontalAlignment="Left"
+            VerticalAlignment="Center"
+            Background="{ThemeResource SystemAccentColor}"
+            IsHitTestVisible="False" />
+
+        <Canvas IsHitTestVisible="True">
+            <Ellipse
+                x:Name="Thumb"
+                Canvas.Top="8"
+                Width="16"
+                Height="16"
+                Canvas.ZIndex="1"
+                Fill="{ThemeResource SystemAccentColor}"
+                PointerMoved="Thumb_PointerMoved"
+                PointerPressed="Thumb_PointerPressed"
+                PointerReleased="Thumb_PointerReleased"
+                StrokeThickness="2" />
+        </Canvas>
+    </Grid>
+</UserControl>

@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Generic;
+using System.Threading;
 using WinTube.Model;
 using WinTube.Pages;
 using WinTube.Services;
@@ -20,10 +21,16 @@ public partial class MainViewModel(NavigationService navigationService, YoutubeS
     [RelayCommand]
     public void OnToggleSearchBoxVisibility() => IsSearchBoxVisible = !IsSearchBoxVisible;
 
+    private CancellationTokenSource _cts;
     public async void OnQueryChanged()
     {
         // ToDo: cancel last task
-        Suggestions = await suggestionService.GetSuggestionsAsync(SearchText);
+        _cts?.Cancel();
+        _cts = new();
+        try
+        {
+            Suggestions = await suggestionService.GetSuggestionsAsync(SearchText, _cts.Token);
+        } catch { }
     }
 
     public void OnQuerySubmitted()

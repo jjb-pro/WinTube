@@ -142,6 +142,9 @@
       <DependentUpon>FontIcon.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\ReactionButton.cs" />
+    <Compile Include="Controls\SeekBar.xaml.cs">
+      <DependentUpon>SeekBar.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Controls\Shimmer.xaml.cs">
       <DependentUpon>Shimmer.xaml</DependentUpon>
     </Compile>
@@ -154,6 +157,7 @@
     <Compile Include="Controls\VideoDurationBadge.xaml.cs">
       <DependentUpon>VideoDurationBadge.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Converters\UriToImageSourceConverter.cs" />
     <Compile Include="Converters\EqualityToBooleanConverter.cs" />
     <Compile Include="Converters\HalfValueConverter.cs" />
     <Compile Include="Converters\NullToVisibilityConverter.cs" />
@@ -228,9 +232,9 @@
     <Content Include="Assets\StoreLogo.scale-100.png" />
     <Content Include="Assets\StoreLogo.scale-200.png" />
     <Content Include="Assets\StoreLogo.scale-400.png" />
-    <Content Include="Assets\Template\temp-channel.png" />
-    <Content Include="Assets\Template\Thumb_Default.png" />
-    <Content Include="Assets\Template\WinTube_Icon.png" />
+    <Content Include="Assets\Template\img_profile_default.png" />
+    <Content Include="Assets\Template\img_thumb_default.png" />
+    <Content Include="Assets\Template\icon_WinTube.png" />
     <Content Include="Assets\Wide310x150Logo.scale-100.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
@@ -254,6 +258,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\FontIcon.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\SeekBar.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

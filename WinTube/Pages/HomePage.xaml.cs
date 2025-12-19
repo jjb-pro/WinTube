@@ -1,6 +1,4 @@
-﻿using LibVLCSharp.Platforms.UWP;
-using LibVLCSharp.Shared;
-using System.Linq;
+﻿using LibVLCSharp.Shared;
 using Windows.UI.Xaml.Controls;
 
 namespace WinTube.Pages;

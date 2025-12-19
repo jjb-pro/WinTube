@@ -38,12 +38,11 @@
         <Grid Visibility="{x:Bind ViewModel.IsLoading, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}">
             <Grid.RowDefinitions>
                 <RowDefinition Height="auto" />
-                <RowDefinition Height="auto" />
                 <RowDefinition />
             </Grid.RowDefinitions>
 
             <controls:SyncAudioVideoControl
-                Height="300"
+                HorizontalAlignment="Stretch"
                 AudioStreams="{x:Bind ViewModel.AudioStreams, Mode=OneWay}"
                 VideoStreams="{x:Bind ViewModel.VideoStreams, Mode=OneWay}" />
 
@@ -51,13 +50,6 @@
                 CaptionSources="{x:Bind ViewModel.CaptionSources, Mode=OneWay}"
                 PosterSource="{x:Bind ViewModel.PosterSource, Mode=OneWay, TargetNullValue=/Assets/Template/Thumb_Default.png}"
             -->
-
-            <controls:BindableMediaPlayerElement
-                AreTransportControlsEnabled="True"
-                AutoPlay="True"
-                PosterSource="{x:Bind ViewModel.PosterSource, Mode=OneWay, TargetNullValue=/Assets/Template/Thumb_Default.png}"
-                StreamSource="{x:Bind ViewModel.LivestreamSource, Mode=OneWay}"
-                Visibility="{x:Bind ViewModel.IsLive, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
             <Grid Grid.Row="1" Padding="16,0,16,16">
                 <Grid.RowDefinitions>
@@ -73,16 +65,14 @@
                     <ColumnDefinition Width="auto" />
                 </Grid.ColumnDefinitions>
 
-                <Border
+                <controls:Shimmer
+                    Width="250"
+                    Height="20"
                     Margin="0,24,0,0"
                     HorizontalAlignment="Left"
-                    CornerRadius="4">
-                    <controls:Shimmer
-                        Width="250"
-                        Height="20"
-                        d:Visibility="Collapsed"
-                        Visibility="{x:Bind ViewModel.Title, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}" />
-                </Border>
+                    d:Visibility="Collapsed"
+                    Radius="4"
+                    Visibility="{x:Bind ViewModel.Title, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}" />
                 <TextBlock
                     Margin="0,16,0,0"
                     d:Text="Short video title | Test"
@@ -104,16 +94,14 @@
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
 
-                    <Border
+                    <controls:Shimmer
                         Grid.ColumnSpan="2"
+                        Width="50"
+                        Height="17"
                         HorizontalAlignment="Left"
-                        CornerRadius="4">
-                        <controls:Shimmer
-                            Width="50"
-                            Height="17"
-                            d:Visibility="Collapsed"
-                            Visibility="{x:Bind ViewModel.ViewCount, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}" />
-                    </Border>
+                        d:Visibility="Collapsed"
+                        Radius="4"
+                        Visibility="{x:Bind ViewModel.ViewCount, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}" />
 
                     <controls:FontIcon
                         VerticalAlignment="Center"
@@ -187,17 +175,15 @@
 
                             <controls:ChannelPicture ImageSource="{x:Bind ViewModel.ChannelPicture, Mode=OneWay, Converter={StaticResource UriToBitmapConverter}}" />
 
-                            <Border
+                            <controls:Shimmer
                                 Grid.Column="1"
+                                Width="100"
+                                Height="17"
                                 Margin="8,0,0,0"
                                 HorizontalAlignment="Left"
-                                CornerRadius="4">
-                                <controls:Shimmer
-                                    Width="100"
-                                    Height="17"
-                                    d:Visibility="Collapsed"
-                                    Visibility="{x:Bind ViewModel.ChannelTitle, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}" />
-                            </Border>
+                                d:Visibility="Collapsed"
+                                Radius="4"
+                                Visibility="{x:Bind ViewModel.ChannelTitle, Mode=OneWay, Converter={StaticResource NullToVisibilityConverter}}" />
                             <TextBlock
                                 Grid.Column="1"
                                 Margin="8,0,0,0"
