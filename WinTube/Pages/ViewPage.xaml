@@ -41,10 +41,11 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <controls:SynchronizedMediaControl
+            <controls:MediaPlayerControls
                 HorizontalAlignment="Stretch"
-                AudioStream="{x:Bind ViewModel.AudioStream, Mode=OneWay}"
-                VideoStream="{x:Bind ViewModel.VideoStream, Mode=OneWay}" />
+                AudioSources="{x:Bind ViewModel.AudioSources, Mode=OneWay}"
+                SubtitleSources="{x:Bind ViewModel.SubtitleSources, Mode=OneWay}"
+                VideoSources="{x:Bind ViewModel.VideoSources, Mode=OneWay}" />
 
             <!--<controls:SyncAudioVideoControl
                 HorizontalAlignment="Stretch"
@@ -81,6 +82,7 @@
                 <TextBlock
                     Margin="0,16,0,0"
                     d:Text="Short video title | Test"
+                    IsTextSelectionEnabled="True"
                     Style="{StaticResource SubtitleTextBlockStyle}"
                     Text="{x:Bind ViewModel.Title, Mode=OneWay}"
                     TextWrapping="WrapWholeWords" />

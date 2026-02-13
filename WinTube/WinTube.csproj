@@ -133,13 +133,14 @@
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\BindableMediaPlayerElement.cs" />
     <Compile Include="Controls\ChannelPicture.xaml.cs">
       <DependentUpon>ChannelPicture.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\CustomMediaTransportControls.cs" />
     <Compile Include="Controls\FontIcon.xaml.cs">
       <DependentUpon>FontIcon.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Controls\MediaPlayerControls.xaml.cs">
+      <DependentUpon>MediaPlayerControls.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\ReactionButton.cs" />
     <Compile Include="Controls\SeekBar.xaml.cs">
@@ -148,7 +149,7 @@
     <Compile Include="Controls\Shimmer.xaml.cs">
       <DependentUpon>Shimmer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\SynchronizedMediaControl.cs" />
+    <Compile Include="Controls\SynchronizedMediaPlayer.cs" />
     <Compile Include="Controls\VideoDurationBadge.xaml.cs">
       <DependentUpon>VideoDurationBadge.xaml</DependentUpon>
     </Compile>
@@ -166,7 +167,7 @@
     <Compile Include="Pages\MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Model\NamedMediaSource.cs" />
+    <Compile Include="Model\NamedAudioResource.cs" />
     <Compile Include="Model\Observable\ObservablePlaylistSearchResult.cs" />
     <Compile Include="Model\Observable\ObservableSearchResult.cs" />
     <Compile Include="Model\Observable\ObservableVideoSearchResult.cs" />
@@ -200,6 +201,7 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\Icons\ic_fluent_subtitles_24_filled.svg" />
     <Content Include="Assets\LargeTile.scale-100.png" />
     <Content Include="Assets\LargeTile.scale-200.png" />
     <Content Include="Assets\LargeTile.scale-400.png" />
@@ -253,6 +255,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="Controls\FontIcon.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="Controls\MediaPlayerControls.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -329,6 +335,9 @@
       <Version>1.15.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Win2D.uwp">
+      <Version>1.28.2</Version>
     </PackageReference>
     <PackageReference Include="YoutubeExplode">
       <Version>6.5.7</Version>

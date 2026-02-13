@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Generic;
 using System.Threading;
+using Windows.UI.Xaml.Controls;
 using WinTube.Model;
 using WinTube.Pages;
 using WinTube.Services;
@@ -33,9 +34,21 @@ public partial class MainViewModel(NavigationService navigationService, YoutubeS
         } catch { }
     }
 
-    public void OnQuerySubmitted()
+    public void OnQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)
     {
+        string query;
+
+        if (args.ChosenSuggestion is SuggestionResult suggestion)
+        {
+            query = suggestion.Text;
+            SearchText = suggestion.Text;
+        }
+        else
+        {
+            query = args.QueryText;
+        }
+
         navigationService.NavigateTo(typeof(SearchPage));
-        WeakReferenceMessenger.Default.Send(new SearchRequestedMessage(SearchText));
+        WeakReferenceMessenger.Default.Send(new SearchRequestedMessage(query));
     }
 }

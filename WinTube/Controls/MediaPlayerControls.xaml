@@ -1,0 +1,229 @@
+﻿<UserControl
+    x:Class="WinTube.Controls.MediaPlayerControls"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="using:WinTube.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="using:WinTube.Controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="300"
+    d:DesignWidth="400"
+    mc:Ignorable="d">
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <converters:NullToVisibilityConverter x:Key="InvertedNullToVisibilityConverter" Invert="True" />
+    </UserControl.Resources>
+
+    <Grid
+        x:Name="mainGrid"
+        HorizontalAlignment="Stretch"
+        Background="Black"
+        PointerEntered="OnMainGridPointerMoved"
+        PointerMoved="OnMainGridPointerMoved">
+
+        <local:SynchronizedMediaPlayer
+            x:Name="parentPlayer"
+            HorizontalAlignment="Center"
+            LengthChanged="OnPlaybackLengthChanged"
+            PositionChanged="OnPositionChanged" />
+
+        <Grid
+            x:Name="overlays"
+            Canvas.ZIndex="1"
+            IsHitTestVisible="True"
+            Opacity="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto" />
+                <RowDefinition />
+                <RowDefinition Height="auto" />
+                <RowDefinition Height="auto" />
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+
+            <StackPanel
+                Grid.Column="2"
+                Margin="0,-6,18,18"
+                HorizontalAlignment="Right"
+                Canvas.ZIndex="1"
+                Orientation="Horizontal">
+
+                <Button
+                    Click="OnSubtitleButtonClick"
+                    Style="{StaticResource TransparentPathIconButtonStyle}"
+                    Visibility="{x:Bind Subtitles, Mode=OneWay, Converter={StaticResource InvertedNullToVisibilityConverter}}">
+                    <Grid Width="24" Height="24">
+                        <PathIcon Data="M2 7.25C2 5.45507 3.45507 4 5.25 4H18.75C20.5449 4 22 5.45507 22 7.25V16.75C22 18.5449 20.5449 20 18.75 20H5.25C3.45507 20 2 18.5449 2 16.75V7.25ZM5.25 5.5C4.2835 5.5 3.5 6.2835 3.5 7.25V16.75C3.5 17.7165 4.2835 18.5 5.25 18.5H18.75C19.7165 18.5 20.5 17.7165 20.5 16.75V7.25C20.5 6.2835 19.7165 5.5 18.75 5.5H5.25ZM5 13.25C5 12.8358 5.33579 12.5 5.75 12.5H13.25C13.6642 12.5 14 12.8358 14 13.25C14 13.6642 13.6642 14 13.25 14H5.75C5.33579 14 5 13.6642 5 13.25ZM15.75 12.5C15.3358 12.5 15 12.8358 15 13.25C15 13.6642 15.3358 14 15.75 14H18.25C18.6642 14 19 13.6642 19 13.25C19 12.8358 18.6642 12.5 18.25 12.5H15.75ZM5 16.25C5 15.8358 5.33579 15.5 5.75 15.5H9.25C9.66421 15.5 10 15.8358 10 16.25C10 16.6642 9.66421 17 9.25 17H5.75C5.33579 17 5 16.6642 5 16.25ZM11.75 15.5C11.3358 15.5 11 15.8358 11 16.25C11 16.6642 11.3358 17 11.75 17H18.25C18.6642 17 19 16.6642 19 16.25C19 15.8358 18.6642 15.5 18.25 15.5H11.75Z" Visibility="{x:Bind IsSubtitleOn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}, ConverterParameter=true}" />
+                        <PathIcon
+                            d:Visibility="Collapsed"
+                            Data="M2 7.25C2 5.45507 3.45507 4 5.25 4H18.75C20.5449 4 22 5.45507 22 7.25V16.75C22 18.5449 20.5449 20 18.75 20H5.25C3.45507 20 2 18.5449 2 16.75V7.25ZM5 13.25C5 13.6642 5.33579 14 5.75 14H13.25C13.6642 14 14 13.6642 14 13.25C14 12.8358 13.6642 12.5 13.25 12.5H5.75C5.33579 12.5 5 12.8358 5 13.25ZM15.75 12.5C15.3358 12.5 15 12.8358 15 13.25C15 13.6642 15.3358 14 15.75 14H18.25C18.6642 14 19 13.6642 19 13.25C19 12.8358 18.6642 12.5 18.25 12.5H15.75ZM5 16.25C5 16.6642 5.33579 17 5.75 17H9.25C9.66421 17 10 16.6642 10 16.25C10 15.8358 9.66421 15.5 9.25 15.5H5.75C5.33579 15.5 5 15.8358 5 16.25ZM11.75 15.5C11.3358 15.5 11 15.8358 11 16.25C11 16.6642 11.3358 17 11.75 17H18.25C18.6642 17 19 16.6642 19 16.25C19 15.8358 18.6642 15.5 18.25 15.5H11.75Z"
+                            Foreground="{ThemeResource SystemAccentColor}"
+                            Visibility="{x:Bind IsSubtitleOn, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    </Grid>
+                </Button>
+                <Button
+                    Margin="22,0,0,0"
+                    IsEnabled="False"
+                    Style="{StaticResource TransparentPathIconButtonStyle}">
+                    <local:FontIcon FontSize="16" Glyph="&#xE995;" />
+                </Button>
+                <Button Margin="22,0,0,0" Style="{StaticResource TransparentPathIconButtonStyle}">
+                    <local:FontIcon FontSize="16" Glyph="&#xE713;" />
+
+                    <Button.Flyout>
+                        <Flyout Placement="BottomEdgeAlignedLeft">
+                            <Grid Width="250">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition Height="auto" />
+                                    <RowDefinition />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="auto" />
+                                    <ColumnDefinition />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock
+                                    Grid.ColumnSpan="2"
+                                    FontWeight="SemiBold"
+                                    Text="Playback quality" />
+
+                                <TextBlock
+                                    Grid.Row="2"
+                                    Margin="0,8,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="Audio" />
+                                <ComboBox
+                                    Grid.Row="2"
+                                    Grid.Column="1"
+                                    Margin="12,8,0,0"
+                                    HorizontalAlignment="Stretch"
+                                    ItemsSource="{x:Bind AudioSources, Mode=OneWay}"
+                                    SelectedItem="{x:Bind SelectedAudioSource, Mode=TwoWay}"
+                                    SelectionChanged="{x:Bind OnSelectedAudioSourceChanged}" />
+
+                                <TextBlock
+                                    Grid.Row="3"
+                                    Margin="0,4,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="Video" />
+                                <ComboBox
+                                    Grid.Row="3"
+                                    Grid.Column="1"
+                                    Margin="12,4,0,0"
+                                    HorizontalAlignment="Stretch"
+                                    ItemsSource="{x:Bind VideoSources, Mode=OneWay}"
+                                    SelectedItem="{x:Bind SelectedVideoSource, Mode=TwoWay}"
+                                    SelectionChanged="{x:Bind OnSelectedVideoSourceChanged}" />
+
+                                <TextBlock
+                                    Grid.Row="4"
+                                    Margin="0,4,0,0"
+                                    VerticalAlignment="Center"
+                                    Text="Subtitle"
+                                    Visibility="{x:Bind Subtitles, Mode=OneWay, Converter={StaticResource InvertedNullToVisibilityConverter}}" />
+                                <ComboBox
+                                    Grid.Row="4"
+                                    Grid.Column="1"
+                                    Margin="12,4,0,0"
+                                    HorizontalAlignment="Stretch"
+                                    ItemsSource="{x:Bind Subtitles, Mode=OneWay}"
+                                    SelectedItem="{x:Bind SelectedSubtitle, Mode=TwoWay}"
+                                    Visibility="{x:Bind Subtitles, Mode=OneWay, Converter={StaticResource InvertedNullToVisibilityConverter}}" />
+                            </Grid>
+                        </Flyout>
+                    </Button.Flyout>
+                </Button>
+            </StackPanel>
+
+            <StackPanel
+                Grid.Row="1"
+                Grid.Column="1"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Orientation="Horizontal">
+                <Button
+                    x:Name="playPauseButton"
+                    Click="OnPlayPauseClicked"
+                    Style="{StaticResource TransparentPathIconButtonStyle}">
+                    <local:FontIcon
+                        x:Name="playPauseIcon"
+                        Glyph="&#xE768;"
+                        Size="48" />
+                </Button>
+            </StackPanel>
+
+            <TextBlock
+                x:Name="timeElapsedText"
+                Grid.Row="2"
+                Grid.RowSpan="2"
+                Margin="16,0,18,18"
+                VerticalAlignment="Bottom"
+                d:Text="1:23"
+                Canvas.ZIndex="1" />
+
+            <StackPanel
+                Grid.Row="2"
+                Grid.RowSpan="2"
+                Grid.Column="2"
+                Margin="0,0,18,18"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Bottom"
+                BorderThickness="1"
+                Canvas.ZIndex="1"
+                Orientation="Horizontal">
+                <TextBlock x:Name="timeRemainingText" d:Text="4:08" />
+
+                <Button Click="OnFullscreenButtonClicked" Style="{StaticResource TransparentPathIconButtonStyle}">
+                    <local:FontIcon
+                        Margin="12,0,0,0"
+                        FontSize="16"
+                        Glyph="&#xE740;" />
+                </Button>
+            </StackPanel>
+
+            <local:SeekBar
+                x:Name="seekBar"
+                Grid.Row="3"
+                Grid.ColumnSpan="3"
+                Margin="0,0,0,-16"
+                VerticalAlignment="Bottom"
+                Canvas.ZIndex="1"
+                SeekRequested="OnSeekRequested" />
+
+            <!--  gradient overlays  -->
+            <Rectangle
+                Grid.ColumnSpan="3"
+                Height="80"
+                VerticalAlignment="Bottom"
+                IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                        <GradientStop Offset="0.0" Color="#00000000" />
+                        <GradientStop Offset="1.0" Color="#E6000000" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+
+            <Rectangle
+                Grid.Row="2"
+                Grid.RowSpan="2"
+                Grid.ColumnSpan="3"
+                Height="80"
+                VerticalAlignment="Bottom"
+                IsHitTestVisible="False">
+                <Rectangle.Fill>
+                    <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                        <GradientStop Offset="0.0" Color="#E6000000" />
+                        <GradientStop Offset="1.0" Color="#00000000" />
+                    </LinearGradientBrush>
+                </Rectangle.Fill>
+            </Rectangle>
+        </Grid>
+    </Grid>
+</UserControl>
