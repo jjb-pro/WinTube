@@ -10,7 +10,6 @@ using WinTube.Model;
 
 namespace WinTube.Controls;
 
-
 [DependencyProperty<ObservableCollection<NamedMediaSource>>("AudioStreams", DefaultValueExpression = "[]")]
 [DependencyProperty<ObservableCollection<NamedMediaSource>>("VideoStreams", DefaultValueExpression = "[]")]
 [DependencyProperty<ObservableCollection<NamedMediaSource>>("CaptionSources", DefaultValueExpression = "[]")]

@@ -148,12 +148,7 @@
     <Compile Include="Controls\Shimmer.xaml.cs">
       <DependentUpon>Shimmer.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Controls\SyncAudioVideoControl.xaml.cs">
-      <DependentUpon>SyncAudioVideoControl.xaml</DependentUpon>
-    </Compile>
-    <Compile Include="Controls\SynchronizedMediaControl.xaml.cs">
-      <DependentUpon>SynchronizedMediaControl.xaml</DependentUpon>
-    </Compile>
+    <Compile Include="Controls\SynchronizedMediaControl.cs" />
     <Compile Include="Controls\VideoDurationBadge.xaml.cs">
       <DependentUpon>VideoDurationBadge.xaml</DependentUpon>
     </Compile>
@@ -269,14 +264,6 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Controls\SyncAudioVideoControl.xaml">
-      <Generator>MSBuild:Compile</Generator>
-      <SubType>Designer</SubType>
-    </Page>
-    <None Include="Controls\SynchronizedMediaControl.xaml">
-      <SubType>Designer</SubType>
-      <Generator>MSBuild:Compile</Generator>
-    </None>
     <Page Include="Controls\VideoDurationBadge.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -333,7 +320,7 @@
       <Version>5.1.100</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection">
-      <Version>10.0.0</Version>
+      <Version>10.0.3</Version>
     </PackageReference>
     <PackageReference Include="Microsoft.NETCore.UniversalWindowsPlatform">
       <Version>6.2.14</Version>
@@ -343,17 +330,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-    <PackageReference Include="LibVLCSharp">
-      <Version>3.6.1</Version>
-    </PackageReference>
-    <PackageReference Include="VideoLAN.LibVLC.UWP">
-      <Version>3.3.2</Version>
-    </PackageReference>
-    <PackageReference Include="Win2D.uwp">
-      <Version>1.28.2</Version>
-    </PackageReference>
     <PackageReference Include="YoutubeExplode">
-      <Version>6.5.6</Version>
+      <Version>6.5.7</Version>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>

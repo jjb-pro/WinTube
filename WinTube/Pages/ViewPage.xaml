@@ -41,10 +41,15 @@
                 <RowDefinition />
             </Grid.RowDefinitions>
 
-            <controls:SyncAudioVideoControl
+            <controls:SynchronizedMediaControl
+                HorizontalAlignment="Stretch"
+                AudioStream="{x:Bind ViewModel.AudioStream, Mode=OneWay}"
+                VideoStream="{x:Bind ViewModel.VideoStream, Mode=OneWay}" />
+
+            <!--<controls:SyncAudioVideoControl
                 HorizontalAlignment="Stretch"
                 AudioStreams="{x:Bind ViewModel.AudioStreams, Mode=OneWay}"
-                VideoStreams="{x:Bind ViewModel.VideoStreams, Mode=OneWay}" />
+                VideoStreams="{x:Bind ViewModel.VideoStreams, Mode=OneWay}" />-->
 
             <!--
                 CaptionSources="{x:Bind ViewModel.CaptionSources, Mode=OneWay}"

@@ -11,14 +11,8 @@
     d:DataContext="{d:DesignInstance Type=viewmodels:MainViewModel}"
     mc:Ignorable="d">
 
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition />
-        </Grid.RowDefinitions>
-
-        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
-            <TextBlock Style="{StaticResource HeaderTextBlockStyle}" Text="WinTube" />
-            <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Start by searching ..." />
-        </StackPanel>
-    </Grid>
+    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+        <TextBlock Style="{StaticResource HeaderTextBlockStyle}" Text="WinTube" />
+        <TextBlock Style="{StaticResource CaptionTextBlockStyle}" Text="Start by searching ..." />
+    </StackPanel>
 </Page>
