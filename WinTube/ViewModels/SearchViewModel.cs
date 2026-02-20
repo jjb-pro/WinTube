@@ -31,8 +31,7 @@ public partial class SearchViewModel : ObservableObject, IRecipient<SearchReques
         _client = youtubeClient;
         _navigationService = navigationService;
 
-        var connectionProfile = NetworkInformation.GetInternetConnectionProfile();
-        IsOffline = connectionProfile == null || connectionProfile.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.None;
+        UpdateConnectionState();
         SearchResults = null;
 
         WeakReferenceMessenger.Default.RegisterAll(this);
@@ -41,9 +40,16 @@ public partial class SearchViewModel : ObservableObject, IRecipient<SearchReques
     public void Receive(SearchRequestedMessage message)
     {
         _cts?.Cancel();
+        UpdateConnectionState();
 
         _cts = new();
         SearchResults = new IncrementalVideoSearchCollection(_client, message.Query, _cts.Token);
+    }
+
+    private void UpdateConnectionState()
+    {
+        var connectionProfile = NetworkInformation.GetInternetConnectionProfile();
+        IsOffline = connectionProfile == null || connectionProfile.GetNetworkConnectivityLevel() == NetworkConnectivityLevel.None;
     }
 
     public void Receive(ListModeChangeMessage message) => IsCompactMode = message.IsCompactMode;

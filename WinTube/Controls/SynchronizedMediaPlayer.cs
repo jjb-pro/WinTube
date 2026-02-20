@@ -2,7 +2,6 @@ using DependencyPropertyGenerator;
 using FFmpegInteropX;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Windows.Media;
 using Windows.Media.Core;
@@ -17,6 +16,8 @@ using Windows.UI.Xaml.Controls;
 namespace WinTube.Controls;
 
 [DependencyProperty<bool>("IsBuffering")]
+[DependencyProperty<TimeSpan>("Length")]
+[DependencyProperty<TimeSpan>("Position")]
 public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
 {
     private readonly MediaPlayer _audioPlayer = new()
@@ -70,7 +71,7 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
         _syncTimer.Tick += OnTimerTick;
 
         _audioPlayer.CurrentStateChanged += OnAudioPlayerStateChanged;
-        
+
         // handle audio/video buffering
         _audioPlayer.PlaybackSession.BufferingStarted += OnAudioPlayerBufferingStarted;
         _audioPlayer.PlaybackSession.BufferingEnded += OnAudioPlayerBufferingEnded;
@@ -105,32 +106,33 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
     private async void OnAudioPlayerBufferingStarted(MediaPlaybackSession sender, object args)
     {
         _isAudioBuffering = true;
-        UpdateBufferingState();
+        await UpdateBufferingStateAsync();
         await StopPlaybackAsync();
     }
 
     private async void OnAudioPlayerBufferingEnded(MediaPlaybackSession sender, object args)
     {
         _isAudioBuffering = false;
-        UpdateBufferingState();
+        await UpdateBufferingStateAsync();
         await TryResumePlaybackAsync();
     }
 
     private async void OnVideoPlayerBufferingStarted(MediaPlaybackSession sender, object args)
     {
         _isVideoBuffering = true;
-        UpdateBufferingState();
+        await UpdateBufferingStateAsync();
         await StopPlaybackAsync();
     }
 
     private async void OnVideoPlayerBufferingEnded(MediaPlaybackSession sender, object args)
     {
         _isVideoBuffering = false;
-        UpdateBufferingState();
+        await UpdateBufferingStateAsync();
         await TryResumePlaybackAsync();
     }
 
-    private void UpdateBufferingState() => IsBuffering = _isAudioBuffering || _isVideoBuffering;
+    private async Task UpdateBufferingStateAsync()
+        => await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () => IsBuffering = _isAudioBuffering || _isVideoBuffering);
 
     private async Task StopPlaybackAsync() => await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
     {
@@ -153,6 +155,9 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
     // synchronization logic
     private void OnTimerTick(object sender, object e)
     {
+        if (_audioPlayer.CurrentState == MediaPlayerState.Closed)
+            return;
+
         var audioPos = _audioPlayer.PlaybackSession.Position.TotalMilliseconds;
         var videoPos = _videoPlayer.PlaybackSession.Position.TotalMilliseconds;
         var diff = audioPos - videoPos;
@@ -163,34 +168,34 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
 
             _currentRate = 1.0;
             _smoothedDiff = 0;
-            return;
         }
-
-        // smooth timing error
-        _smoothedDiff += (diff - _smoothedDiff) * DiffSmoothingFactor;
-
-        if (Math.Abs(_smoothedDiff) <= SyncThreshold)
+        else
         {
-            _currentRate += (1.0 - _currentRate) * RateSmoothingFactor;
-            _videoPlayer.PlaybackSession.PlaybackRate = _currentRate;
-            return;
+            // smooth timing error
+            _smoothedDiff += (diff - _smoothedDiff) * DiffSmoothingFactor;
+
+            if (Math.Abs(_smoothedDiff) <= SyncThreshold)
+            {
+                _currentRate += (1.0 - _currentRate) * RateSmoothingFactor;
+                _videoPlayer.PlaybackSession.PlaybackRate = _currentRate;
+            }
+            else
+            {
+
+                var targetRate = Math.Clamp(1.0 + (_smoothedDiff / 1000.0) * RateAdjustFactor, MinPlaybackRate, MaxPlaybackRate);
+                _currentRate += (targetRate - _currentRate) * RateSmoothingFactor;
+
+                _videoPlayer.PlaybackSession.PlaybackRate = _currentRate;
+            }
         }
 
-        var targetRate = Math.Clamp(1.0 + (_smoothedDiff / 1000.0) * RateAdjustFactor, MinPlaybackRate, MaxPlaybackRate);
-        _currentRate += (targetRate - _currentRate) * RateSmoothingFactor;
-
-        _videoPlayer.PlaybackSession.PlaybackRate = _currentRate;
-
+        Position = _audioPlayer.PlaybackSession.Position;
         PositionChanged?.Invoke(this, Position);
     }
 
     // methods for controlling playback
     public bool IsPlaying => _audioPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Playing;
 
-    public TimeSpan Length => _audioPlayer.PlaybackSession.NaturalDuration;
-    public event EventHandler<TimeSpan>? LengthChanged;
-
-    public TimeSpan Position => _audioPlayer.PlaybackSession.Position;
     public event EventHandler<TimeSpan>? PositionChanged;
 
     public void Play() => _audioPlayer.Play();
@@ -220,30 +225,35 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
 
         _audioFFmpegSource = await FFmpegMediaSource.CreateFromStreamAsync(audioStream, _config);
         _audioPlayer.Source = _audioFFmpegSource.CreateMediaPlaybackItem();
+        _audioPlayer.PlaybackSession.Position = previousPosition;
+
+        Length = _audioPlayer.PlaybackSession.NaturalDuration;
 
         // ToDo: move to separate class
         var smtc = _audioPlayer.SystemMediaTransportControls;
         smtc.DisplayUpdater.Type = MediaPlaybackType.Video;
         smtc.DisplayUpdater.Update();
-
-        _audioPlayer.PlaybackSession.Position = previousPosition;
-
-        LengthChanged?.Invoke(this, Length);
     }
 
     public async Task SetVideoSourceAsync(IRandomAccessStream videoStream, IEnumerable<IRandomAccessStream> subtitleStreams)
     {
-        _videoFFmpegSource = await FFmpegMediaSource.CreateFromStreamAsync(videoStream, _config);
-        
+        var source = MediaSource.CreateFromStream(videoStream, "video/mp4");
         foreach (var stream in subtitleStreams)
-            await _videoFFmpegSource.AddExternalSubtitleAsync(stream);
+            source.ExternalTimedTextSources.Add(TimedTextSource.CreateFromStream(stream, "text/srt"));
 
-        var a = _videoFFmpegSource.CreateMediaPlaybackItem();
-        
-        if (subtitleStreams.Any())
-            a.TimedMetadataTracks.SetPresentationMode(0, TimedMetadataTrackPresentationMode.PlatformPresented);
+        _videoPlayer.Source = source;
 
-        _videoPlayer.Source = a;
+        //_videoFFmpegSource = await FFmpegMediaSource.CreateFromStreamAsync(videoStream, _config);
+
+        //foreach (var stream in subtitleStreams)
+        //    await _videoFFmpegSource.AddExternalSubtitleAsync(stream);
+
+        //var a = _videoFFmpegSource.CreateMediaPlaybackItem();
+
+        //if (subtitleStreams.Any())
+        //    a.TimedMetadataTracks.SetPresentationMode(0, TimedMetadataTrackPresentationMode.PlatformPresented);
+
+        //_videoPlayer.Source = a;
     }
 
     // dispose resources on unload

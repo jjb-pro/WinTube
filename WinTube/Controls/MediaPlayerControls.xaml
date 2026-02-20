@@ -24,7 +24,6 @@
         <local:SynchronizedMediaPlayer
             x:Name="parentPlayer"
             HorizontalAlignment="Center"
-            LengthChanged="OnPlaybackLengthChanged"
             PositionChanged="OnPositionChanged" />
 
         <Grid
@@ -74,7 +73,7 @@
                     <local:FontIcon FontSize="16" Glyph="&#xE713;" />
 
                     <Button.Flyout>
-                        <Flyout Placement="BottomEdgeAlignedLeft">
+                        <Flyout>
                             <Grid Width="250">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="auto" />
@@ -105,7 +104,7 @@
                                     HorizontalAlignment="Stretch"
                                     ItemsSource="{x:Bind AudioSources, Mode=OneWay}"
                                     SelectedItem="{x:Bind SelectedAudioSource, Mode=TwoWay}"
-                                    SelectionChanged="{x:Bind OnSelectedAudioSourceChanged}" />
+                                    SelectionChanged="OnSelectedAudioSourceChanged" />
 
                                 <TextBlock
                                     Grid.Row="3"
@@ -119,7 +118,7 @@
                                     HorizontalAlignment="Stretch"
                                     ItemsSource="{x:Bind VideoSources, Mode=OneWay}"
                                     SelectedItem="{x:Bind SelectedVideoSource, Mode=TwoWay}"
-                                    SelectionChanged="{x:Bind OnSelectedVideoSourceChanged}" />
+                                    SelectionChanged="OnSelectedVideoSourceChanged" />
 
                                 <TextBlock
                                     Grid.Row="4"
@@ -194,6 +193,7 @@
                 Margin="0,0,0,-16"
                 VerticalAlignment="Bottom"
                 Canvas.ZIndex="1"
+                Length="{Binding ElementName=parentPlayer, Path=Length, Mode=OneWay}"
                 SeekRequested="OnSeekRequested" />
 
             <!--  gradient overlays  -->

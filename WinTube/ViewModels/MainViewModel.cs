@@ -1,12 +1,18 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Windows.UI.Xaml.Controls;
 using WinTube.Model;
 using WinTube.Pages;
 using WinTube.Services;
+
+#nullable enable
 
 namespace WinTube.ViewModels;
 
@@ -17,21 +23,54 @@ public partial class MainViewModel(NavigationService navigationService, YoutubeS
 
     [ObservableProperty] private bool _isTitleBarVisible = true;
 
-    [ObservableProperty] private IEnumerable<SuggestionResult> _suggestions = [];
+    public ObservableCollection<SuggestionResult> Suggestions { get; } = [];
 
     [RelayCommand]
     public void OnToggleSearchBoxVisibility() => IsSearchBoxVisible = !IsSearchBoxVisible;
 
-    private CancellationTokenSource _cts;
+    private CancellationTokenSource? _typingCts;
+    private CancellationTokenSource? _requestCts;
     public async void OnQueryChanged()
     {
-        // ToDo: cancel last task
-        _cts?.Cancel();
-        _cts = new();
+        _typingCts?.Cancel();
+        _typingCts = new CancellationTokenSource();
+
         try
         {
-            Suggestions = await suggestionService.GetSuggestionsAsync(SearchText, _cts.Token);
-        } catch { }
+            await Task.Delay(100, _typingCts.Token); // debounce delay
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        _requestCts?.Cancel();
+        _requestCts = new CancellationTokenSource();
+
+        try
+        {
+            UpdateSuggestions(await suggestionService.GetSuggestionsAsync(SearchText, _requestCts.Token));
+        }
+        catch (OperationCanceledException) { }
+    }
+
+    private void UpdateSuggestions(IEnumerable<SuggestionResult> newItems)
+    {
+        var newSet = new HashSet<SuggestionResult>(newItems);
+
+        // Remove items that no longer exist
+        for (int i = Suggestions.Count - 1; i >= 0; i--)
+        {
+            if (!newSet.Contains(Suggestions[i]))
+                Suggestions.RemoveAt(i);
+        }
+
+        // Add missing items (preserve newItems order)
+        foreach (var item in newItems)
+        {
+            if (!Suggestions.Contains(item))
+                Suggestions.Add(item);
+        }
     }
 
     public void OnQuerySubmitted(AutoSuggestBox sender, AutoSuggestBoxQuerySubmittedEventArgs args)

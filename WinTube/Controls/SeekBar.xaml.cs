@@ -11,7 +11,7 @@ public class SeekRequestedEventArgs(TimeSpan position) : EventArgs
 }
 
 [DependencyProperty<TimeSpan>("Position")]
-[DependencyProperty<TimeSpan>("Duration")]
+[DependencyProperty<TimeSpan>("Length")]
 public sealed partial class SeekBar : UserControl
 {
     public event EventHandler<SeekRequestedEventArgs> SeekRequested;
@@ -22,10 +22,10 @@ public sealed partial class SeekBar : UserControl
 
     private void UpdateVisuals()
     {
-        if (Duration.TotalMilliseconds <= 0 || _isDragging)
+        if (Length.TotalMilliseconds <= 0 || _isDragging)
             return;
 
-        var progress = Position.TotalMilliseconds / Duration.TotalMilliseconds;
+        var progress = Position.TotalMilliseconds / Length.TotalMilliseconds;
         var trackWidth = TrackBackground.ActualWidth;
 
         var fillWidth = progress * trackWidth;
@@ -61,17 +61,18 @@ public sealed partial class SeekBar : UserControl
         _isDragging = false;
         Thumb.ReleasePointerCapture(e.Pointer);
 
-        if (Duration.TotalMilliseconds <= 0) return;
+        if (Length.TotalMilliseconds <= 0)
+            return;
 
         double ratio = _dragX / TrackBackground.ActualWidth;
-        Position = TimeSpan.FromMilliseconds(Duration.TotalMilliseconds * ratio);
+        Position = TimeSpan.FromMilliseconds(Length.TotalMilliseconds * ratio);
 
         SeekRequested?.Invoke(this, new(Position));
     }
 
     private void Track_PointerPressed(object sender, PointerRoutedEventArgs e)
     {
-        if (Duration.TotalMilliseconds <= 0) return;
+        if (Length.TotalMilliseconds <= 0) return;
 
         var point = e.GetCurrentPoint(TrackBackground).Position;
         UpdateFromX(point.X);
@@ -83,7 +84,7 @@ public sealed partial class SeekBar : UserControl
         x = Math.Max(0, Math.Min(x, width));
 
         var ratio = x / width;
-        var position = TimeSpan.FromMilliseconds(Duration.TotalMilliseconds * ratio);
+        var position = TimeSpan.FromMilliseconds(Length.TotalMilliseconds * ratio);
 
         Position = position;
         SeekRequested?.Invoke(this, new(position));

@@ -14,7 +14,9 @@ namespace WinTube.Services;
 public class YoutubeSuggestionService
 {
     private readonly HttpClient _client = new();
-    private readonly List<(string Query, IReadOnlyList<SuggestionResult> Results)> _cache = [];
+    private readonly Dictionary<string, IReadOnlyList<SuggestionResult>> _cache = [];
+    private readonly Queue<string> _order = new();
+
     private const int MaxEntries = 20;
 
     public YoutubeSuggestionService()
@@ -26,16 +28,23 @@ public class YoutubeSuggestionService
 
     public async Task<IEnumerable<SuggestionResult>> GetSuggestionsAsync(string query, CancellationToken cancellationToken = default)
     {
-        var (_, results) = _cache.Find(x => x.Query == query);
-        if (results is not null)
+        if (_cache.TryGetValue(query, out var results))
             return results;
 
         results = await FetchSuggestionsAsync(query, cancellationToken);
 
-        if (_cache.Count == MaxEntries)
-            _cache.RemoveAt(0);
+        if (!_cache.ContainsKey(query))
+        {
+            if (_cache.Count >= MaxEntries)
+            {
+                var oldestKey = _order.Dequeue();
+                _cache.Remove(oldestKey);
+            }
 
-        _cache.Add((query, results));
+            _cache[query] = results;
+            _order.Enqueue(query);
+        }
+
         return results;
     }
 

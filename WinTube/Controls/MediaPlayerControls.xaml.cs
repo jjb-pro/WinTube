@@ -74,6 +74,12 @@ public sealed partial class MediaPlayerControls : UserControl
             .SafeFireAndForget(ex => Debug.WriteLine("Could not set media sources: " + ex.Message));
     }
 
+    partial void OnSelectedAudioSourceChanged(INamedStreamSource? oldValue, INamedStreamSource? newValue)
+    {
+        Debug.WriteLine(oldValue);
+        Debug.WriteLine(newValue);
+    }
+
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
         seekBar.SeekRequested += SeekBar_SeekRequested;
@@ -120,8 +126,6 @@ public sealed partial class MediaPlayerControls : UserControl
         timeRemainingText.Text = r.ToString(r.Hours > 0 ? @"h\:mm\:ss" : @"m\:ss");
     }
 
-    private void OnPlaybackLengthChanged(object sender, TimeSpan newLength) => seekBar.Duration = newLength;
-
     private void OnSeekRequested(object sender, SeekRequestedEventArgs e) => parentPlayer.SeekTo(e.Position);
 
     private void OnPlayPauseClicked(object sender, RoutedEventArgs e)
@@ -162,7 +166,7 @@ public sealed partial class MediaPlayerControls : UserControl
 
     private void OnSubtitleButtonClick(object sender, RoutedEventArgs e) => IsSubtitleOn = !IsSubtitleOn;
 
-    public async void OnSelectedAudioSourceChanged()
+    private async void OnSelectedAudioSourceChanged(object sender, SelectionChangedEventArgs e)
     {
         if (null == SelectedAudioSource)
             return;
@@ -171,7 +175,7 @@ public sealed partial class MediaPlayerControls : UserControl
             .SafeFireAndForget(ex => Debug.WriteLine("Could not set audio source: " + ex.Message));
     }
 
-    public async void OnSelectedVideoSourceChanged()
+    private async void OnSelectedVideoSourceChanged(object sender, SelectionChangedEventArgs e)
     {
         if (null == SelectedVideoSource)
             return;
