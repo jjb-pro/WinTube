@@ -1,15 +1,16 @@
 using DependencyPropertyGenerator;
-using FFmpegInteropX;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Windows.Media;
 using Windows.Media.Core;
 using Windows.Media.Playback;
-using Windows.Storage.Streams;
+using Windows.System.Display;
+using Windows.System.Threading;
 using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
+using WinTube.Model;
 
 #nullable enable
 
@@ -30,57 +31,59 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
         CommandManager = { IsEnabled = false } // disable automatic SMTC integration
     };
 
-    private readonly DispatcherTimer _syncTimer = new()
-    {
-        Interval = TimeSpan.FromMilliseconds(33)
-    };
+    private ThreadPoolTimer? _syncTimer;
 
-    private readonly MediaSourceConfig _config = new()
-    {
-        SkipErrors = uint.MaxValue,
-        FastSeek = true,
-        StreamBufferSize = 10 * 1024 * 1024, // 10 MB
-        FFmpegOptions =
-            {
-                { "reconnect", 1 },
-                { "reconnect_streamed", 1 },
-                { "reconnect_on_network_error", 1 }
-            }
-    };
-    private FFmpegMediaSource? _audioFFmpegSource;
-    private FFmpegMediaSource? _videoFFmpegSource;
+    // keeps the screen from locking mid-playback
+    private readonly DisplayRequest _displayRequest = new();
+    private bool _displayRequestActive;
 
-    private const double SyncThreshold = 50; // ms
-    private const double HardResyncThreshold = 300; // ms
+    private MediaSource? _audioSource;
+    private MediaSource? _videoSource;
 
-    private const double MaxPlaybackRate = 2.0;
-    private const double MinPlaybackRate = 0.5;
-    private const double RateAdjustFactor = 0.2;
+    private const double DeadbandMs = 20;
+    private const double HardResyncThresholdMs = 220;
 
-    private bool _isAudioBuffering = false;
-    private bool _isVideoBuffering = false;
+    private const double MaxRateAdjust = 0.35;              // max correction added on top of user rate
+    private const double ProportionalGain = 1.0 / 400.0;    // ms of drift -> rate correction
+    private const double RateSlewPerTick = 0.05;            // caps how fast the applied rate can change
 
-    private double _smoothedDiff = 0;
-    private double _currentRate = 1.0;
+    private volatile bool _isAudioBuffering;
+    private volatile bool _isVideoBuffering;
 
-    private const double DiffSmoothingFactor = 0.1;
-    private const double RateSmoothingFactor = 0.1;
+    private double _appliedCorrection;
+    private double _playbackRate = 1.0;
 
     public SynchronizedMediaPlayer()
     {
-        _syncTimer.Tick += OnTimerTick;
-
         _audioPlayer.CurrentStateChanged += OnAudioPlayerStateChanged;
 
-        // handle audio/video buffering
         _audioPlayer.PlaybackSession.BufferingStarted += OnAudioPlayerBufferingStarted;
         _audioPlayer.PlaybackSession.BufferingEnded += OnAudioPlayerBufferingEnded;
 
         _videoPlayer.PlaybackSession.BufferingStarted += OnVideoPlayerBufferingStarted;
         _videoPlayer.PlaybackSession.BufferingEnded += OnVideoPlayerBufferingEnded;
 
+        // ToDo: move to separate class
+        var smtc = _audioPlayer.SystemMediaTransportControls;
+        smtc.IsPlayEnabled = true;
+        smtc.IsPauseEnabled = true;
+        smtc.ButtonPressed += OnSmtcButtonPressed;
+
         Unloaded += OnUnloaded;
         SetMediaPlayer(_videoPlayer);
+    }
+
+    private async void OnSmtcButtonPressed(SystemMediaTransportControls sender, SystemMediaTransportControlsButtonPressedEventArgs args)
+    {
+        switch (args.Button)
+        {
+            case SystemMediaTransportControlsButton.Play:
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, Play);
+                break;
+            case SystemMediaTransportControlsButton.Pause:
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, Pause);
+                break;
+        }
     }
 
     // synchronize video to audio playback state
@@ -92,14 +95,33 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
             {
                 case MediaPlaybackState.Playing:
                     _videoPlayer.Play();
-                    _syncTimer.Start();
+                    StartSyncTimer();
+                    RequestKeepScreenOn(true);
+                    _audioPlayer.SystemMediaTransportControls.PlaybackStatus = MediaPlaybackStatus.Playing;
                     break;
                 case MediaPlaybackState.Paused:
                     _videoPlayer.Pause();
-                    _syncTimer.Stop();
+                    StopSyncTimer();
+                    RequestKeepScreenOn(false);
+                    _audioPlayer.SystemMediaTransportControls.PlaybackStatus = MediaPlaybackStatus.Paused;
                     break;
             }
         });
+    }
+
+    private void RequestKeepScreenOn(bool keepOn)
+    {
+        // DisplayRequest is reference-counted, so guard against double-request/double-release
+        if (keepOn && !_displayRequestActive)
+        {
+            _displayRequest.RequestActive();
+            _displayRequestActive = true;
+        }
+        else if (!keepOn && _displayRequestActive)
+        {
+            _displayRequest.RequestRelease();
+            _displayRequestActive = false;
+        }
     }
 
     // buffering handlers
@@ -136,7 +158,7 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
 
     private async Task StopPlaybackAsync() => await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
     {
-        _syncTimer.Stop();
+        StopSyncTimer();
         _audioPlayer.Pause();
     });
 
@@ -147,50 +169,75 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
 
         await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
         {
+            _videoPlayer.PlaybackSession.Position = _audioPlayer.PlaybackSession.Position;
+            _appliedCorrection = 0;
             _audioPlayer.Play();
-            _syncTimer.Start();
+            StartSyncTimer();
         });
     }
 
-    // synchronization logic
-    private void OnTimerTick(object sender, object e)
+    private void StartSyncTimer()
     {
-        if (_audioPlayer.CurrentState == MediaPlayerState.Closed)
-            return;
+        if (_syncTimer != null) return;
+        _syncTimer = ThreadPoolTimer.CreatePeriodicTimer(OnTimerTick, TimeSpan.FromMilliseconds(33));
+    }
 
-        var audioPos = _audioPlayer.PlaybackSession.Position.TotalMilliseconds;
-        var videoPos = _videoPlayer.PlaybackSession.Position.TotalMilliseconds;
-        var diff = audioPos - videoPos;
+    private void StopSyncTimer()
+    {
+        _syncTimer?.Cancel();
+        _syncTimer = null;
+    }
 
-        if (Math.Abs(diff) > HardResyncThreshold)
+    // synchronization logic
+    private async void OnTimerTick(ThreadPoolTimer timer)
+    {
+        double audioPos, videoPos;
+
+        try
         {
-            _videoPlayer.PlaybackSession.Position = TimeSpan.FromMilliseconds(audioPos);
+            if (_audioPlayer.CurrentState == MediaPlayerState.Closed)
+                return;
 
-            _currentRate = 1.0;
-            _smoothedDiff = 0;
+            audioPos = _audioPlayer.PlaybackSession.Position.TotalMilliseconds;
+            videoPos = _videoPlayer.PlaybackSession.Position.TotalMilliseconds;
         }
-        else
+        catch (ObjectDisposedException)
         {
-            // smooth timing error
-            _smoothedDiff += (diff - _smoothedDiff) * DiffSmoothingFactor;
+            return;
+        }
 
-            if (Math.Abs(_smoothedDiff) <= SyncThreshold)
+        var diff = audioPos - videoPos; // positive => video is behind audio
+
+        try
+        {
+            if (Math.Abs(diff) > HardResyncThresholdMs)
             {
-                _currentRate += (1.0 - _currentRate) * RateSmoothingFactor;
-                _videoPlayer.PlaybackSession.PlaybackRate = _currentRate;
+                _videoPlayer.PlaybackSession.Position = TimeSpan.FromMilliseconds(audioPos);
+                _appliedCorrection = 0;
+                _videoPlayer.PlaybackSession.PlaybackRate = _playbackRate;
             }
             else
             {
+                var targetCorrection = Math.Abs(diff) < DeadbandMs
+                    ? 0.0
+                    : Math.Clamp(diff * ProportionalGain, -MaxRateAdjust, MaxRateAdjust);
 
-                var targetRate = Math.Clamp(1.0 + (_smoothedDiff / 1000.0) * RateAdjustFactor, MinPlaybackRate, MaxPlaybackRate);
-                _currentRate += (targetRate - _currentRate) * RateSmoothingFactor;
-
-                _videoPlayer.PlaybackSession.PlaybackRate = _currentRate;
+                _appliedCorrection += (targetCorrection - _appliedCorrection) * RateSlewPerTick;
+                _videoPlayer.PlaybackSession.PlaybackRate = Math.Clamp(_playbackRate + _appliedCorrection, 0.1, 4.0);
             }
         }
+        catch (ObjectDisposedException)
+        {
+            return;
+        }
 
-        Position = _audioPlayer.PlaybackSession.Position;
-        PositionChanged?.Invoke(this, Position);
+        var newPosition = TimeSpan.FromMilliseconds(audioPos);
+
+        await Dispatcher.RunAsync(CoreDispatcherPriority.High, () =>
+        {
+            Position = newPosition;
+            PositionChanged?.Invoke(this, newPosition);
+        });
     }
 
     // methods for controlling playback
@@ -213,19 +260,49 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
     {
         _audioPlayer.PlaybackSession.Position = position;
         _videoPlayer.PlaybackSession.Position = position;
+        _appliedCorrection = 0;
+    }
+
+    public void SeekBy(TimeSpan delta)
+    {
+        var target = _audioPlayer.PlaybackSession.Position + delta;
+        if (target < TimeSpan.Zero)
+            target = TimeSpan.Zero;
+
+        if (Length != default && target > Length)
+            target = Length;
+
+        SeekTo(target);
+    }
+
+    public void SetPlaybackRate(double rate)
+    {
+        _playbackRate = rate <= 0 ? 1.0 : rate;
+        _audioPlayer.PlaybackSession.PlaybackRate = _playbackRate;
+        // video rate is re-applied by the next sync tick
     }
 
     // react to source changes
-    public Task SetSourcesAsync(IRandomAccessStream audioStream, IRandomAccessStream videoStream, IEnumerable<IRandomAccessStream> subtitleStreams)
-        => Task.WhenAll(SetAudioSourceAsync(audioStream), SetVideoSourceAsync(videoStream, subtitleStreams));
+    public void SetSources(INamedStreamSource audioSource, INamedStreamSource videoSource, IEnumerable<INamedStreamSource>? subtitleSources)
+    {
+        SetAudioSource(audioSource);
+        SetVideoSource(videoSource, subtitleSources);
+    }
 
-    public async Task SetAudioSourceAsync(IRandomAccessStream audioStream, bool preservePosition = false)
+    public void SetAudioSource(INamedStreamSource audioSource, bool preservePosition = true)
     {
         var previousPosition = Position;
 
-        _audioFFmpegSource = await FFmpegMediaSource.CreateFromStreamAsync(audioStream, _config);
-        _audioPlayer.Source = _audioFFmpegSource.CreateMediaPlaybackItem();
-        _audioPlayer.PlaybackSession.Position = previousPosition;
+        _audioPlayer.Source = null;
+        _audioSource?.Dispose();
+
+        _audioSource = MediaSource.CreateFromUri(audioSource.Uri);
+        _audioPlayer.Source = _audioSource;
+
+        if (preservePosition)
+            _audioPlayer.PlaybackSession.Position = previousPosition;
+
+        _audioPlayer.PlaybackSession.PlaybackRate = _playbackRate;
 
         Length = _audioPlayer.PlaybackSession.NaturalDuration;
 
@@ -235,36 +312,35 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
         smtc.DisplayUpdater.Update();
     }
 
-    public async Task SetVideoSourceAsync(IRandomAccessStream videoStream, IEnumerable<IRandomAccessStream> subtitleStreams)
+    public void SetVideoSource(INamedStreamSource videoSource, IEnumerable<INamedStreamSource>? subtitleSources)
     {
-        var source = MediaSource.CreateFromStream(videoStream, "video/mp4");
-        foreach (var stream in subtitleStreams)
-            source.ExternalTimedTextSources.Add(TimedTextSource.CreateFromStream(stream, "text/srt"));
+        _videoPlayer.Source = null;
+        _videoSource?.Dispose();
 
-        _videoPlayer.Source = source;
+        _videoSource = MediaSource.CreateFromUri(videoSource.Uri);
+        if (subtitleSources != null)
+        {
+            foreach (var subtitleSource in subtitleSources)
+            {
+                _videoSource.ExternalTimedTextSources.Add(TimedTextSource.CreateFromUri(subtitleSource.Uri, "text/srt"));
+            }
+        }
 
-        //_videoFFmpegSource = await FFmpegMediaSource.CreateFromStreamAsync(videoStream, _config);
-
-        //foreach (var stream in subtitleStreams)
-        //    await _videoFFmpegSource.AddExternalSubtitleAsync(stream);
-
-        //var a = _videoFFmpegSource.CreateMediaPlaybackItem();
-
-        //if (subtitleStreams.Any())
-        //    a.TimedMetadataTracks.SetPresentationMode(0, TimedMetadataTrackPresentationMode.PlatformPresented);
-
-        //_videoPlayer.Source = a;
+        _videoPlayer.Source = _videoSource;
     }
 
     // dispose resources on unload
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        _syncTimer.Stop();
+        StopSyncTimer();
+        RequestKeepScreenOn(false);
+
+        _audioPlayer.SystemMediaTransportControls.ButtonPressed -= OnSmtcButtonPressed;
 
         _audioPlayer.Dispose();
         _videoPlayer.Dispose();
 
-        _audioFFmpegSource?.Dispose();
-        _videoFFmpegSource?.Dispose();
+        _audioSource?.Dispose();
+        _videoSource?.Dispose();
     }
 }

@@ -42,6 +42,7 @@
             </Grid.RowDefinitions>
 
             <controls:MediaPlayerControls
+                MaxHeight="400"
                 HorizontalAlignment="Stretch"
                 AudioSources="{x:Bind ViewModel.AudioSources, Mode=OneWay}"
                 SubtitleSources="{x:Bind ViewModel.SubtitleSources, Mode=OneWay}"

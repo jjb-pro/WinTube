@@ -5,13 +5,11 @@ using CommunityToolkit.Mvvm.Messaging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Web;
 using Windows.UI.Xaml.Media;
 using WinTube.Model;
 using WinTube.Services;
 using YoutubeExplode;
-using YoutubeExplode.Videos;
 using YoutubeExplode.Videos.ClosedCaptions;
 using YoutubeExplode.Videos.Streams;
 
@@ -132,18 +130,21 @@ public partial class ViewViewModel : ObservableRecipient, IRecipient<VideoSelect
         .ThenBy(x => x.Bitrate.KiloBitsPerSecond)
         .Select(x =>
         {
-            var language = x.AudioLanguage.HasValue ? x.AudioLanguage.Value.Name : "unknown";
-            var name = $"{language} • {x.Bitrate.KiloBitsPerSecond:F2} kbps";
+            var name = $"{x.Container.Name} • {x.AudioCodec} • {x.Bitrate.KiloBitsPerSecond:F2} kbps";
+            if (x.AudioLanguage.HasValue)
+                name = $"{x.AudioLanguage.Value.Name} • {name}";
             if (x.IsAudioLanguageDefault == true)
-                name += " (original language)";
+                name += " (original)";
 
-            return new NamedYouTubeStreamSource<IAudioStreamInfo>(name, _client, x);
+            return new NamedYouTubeStreamSource<IAudioStreamInfo>(name, x);
         });
 
     private IEnumerable<NamedYouTubeStreamSource<IVideoStreamInfo>> CreateNamedVideoSources(StreamManifest manifest) => manifest
-        .GetVideoStreams()
-        .OrderBy(x => x.VideoResolution.Area)
-        .Select(x => new NamedYouTubeStreamSource<IVideoStreamInfo>($"{x.VideoQuality} ({x.Container.Name})", _client, x));
+        .GetVideoOnlyStreams()
+        .Where(s => s.Container == Container.Mp4)
+        .Where(s => s.VideoCodec.StartsWith("avc1", StringComparison.OrdinalIgnoreCase))
+        .OrderByDescending(s => s.VideoQuality.MaxHeight)
+        .Select(x => new NamedYouTubeStreamSource<IVideoStreamInfo>($"{x.VideoQuality} ({x.Container.Name})", x));
 
     [RelayCommand]
     private void OnShare() => ShareRequested?.Invoke(this, new(Title, Description, _videoUri));

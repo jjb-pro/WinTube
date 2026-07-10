@@ -24,12 +24,10 @@ namespace WinTube.Controls;
 [DependencyProperty<IEnumerable<INamedStreamSource>>("SubtitleSources")]
 public sealed partial class MediaPlayerControls : UserControl
 {
-    private DispatcherTimer _hideTimer;
-    private Storyboard _fadeInStoryboard;
-    private Storyboard _fadeOutStoryboard;
-    private long _currentTimeMs;
+    private readonly DispatcherTimer _hideTimer;
+    private readonly Storyboard _fadeInStoryboard;
+    private readonly Storyboard _fadeOutStoryboard;
 
-    private IEnumerable<IRandomAccessStream> _subtitleStreams = [];
     [ObservableProperty] public partial bool IsSubtitleOn { get; set; }
     [ObservableProperty] public partial IEnumerable<INamedStreamSource>? Subtitles { get; set; }
     [ObservableProperty] public partial INamedStreamSource? SelectedSubtitle { get; set; }
@@ -63,30 +61,31 @@ public sealed partial class MediaPlayerControls : UserControl
 
     async partial void OnVideoSourcesChanged()
     {
-        // select the best streams
-        SelectedAudioSource = AudioSources.FirstOrDefault();
-        SelectedVideoSource = VideoSources.LastOrDefault();
+        //await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+        //    {
+        //        // select the best streams
+        //        SelectedAudioSource = AudioSources.FirstOrDefault();
+        //        SelectedVideoSource = VideoSources.LastOrDefault();
 
-        if (null == SelectedAudioSource || null == SelectedVideoSource)
-            return;
+        //        Debug.WriteLine($"Count = {AudioSources.Count()}");
+        //        Debug.WriteLine($"Selected = {SelectedAudioSource}");
+        //        Debug.WriteLine($"Contains = {AudioSources.Contains(SelectedAudioSource)}");
+        //        Debug.WriteLine($"ReferenceEquals = {ReferenceEquals(SelectedAudioSource, AudioSources.FirstOrDefault())}");
 
-        parentPlayer.SetSourcesAsync(await SelectedAudioSource.GetStreamAsync(), await SelectedVideoSource.GetStreamAsync(), _subtitleStreams)
-            .SafeFireAndForget(ex => Debug.WriteLine("Could not set media sources: " + ex.Message));
-    }
+        //        if (null == SelectedAudioSource || null == SelectedVideoSource)
+        //            return;
 
-    partial void OnSelectedAudioSourceChanged(INamedStreamSource? oldValue, INamedStreamSource? newValue)
-    {
-        Debug.WriteLine(oldValue);
-        Debug.WriteLine(newValue);
+        //        parentPlayer.SetSources(AudioSources.FirstOrDefault(), VideoSources.LastOrDefault(), SubtitleSources);
+        //    });
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        seekBar.SeekRequested += SeekBar_SeekRequested;
+        seekBar.SeekRequested += OnSeekBarSeekRequested;
         ResetTimer();
     }
 
-    private void SeekBar_SeekRequested(object sender, SeekRequestedEventArgs e)
+    private void OnSeekBarSeekRequested(object sender, SeekRequestedEventArgs e)
     {
         Debug.WriteLine($"Seek requested to {e.Position}");
     }
@@ -98,19 +97,12 @@ public sealed partial class MediaPlayerControls : UserControl
 
     async partial void OnSubtitleSourcesChanged()
     {
-        foreach (var stream in _subtitleStreams)
-            stream.Dispose();
-
-        if (null == SubtitleSources)
+        if (null == SubtitleSources || !SubtitleSources.Any())
         {
             Subtitles = null;
         }
         else
         {
-            _subtitleStreams = await Task.WhenAll(
-                SubtitleSources.Select(async s => await s.GetStreamAsync())
-            );
-
             var offSubtitle = new NamedUriStreamSource("Off", null!);
             Subtitles = [offSubtitle, .. SubtitleSources];
             SelectedSubtitle = offSubtitle;
@@ -166,21 +158,21 @@ public sealed partial class MediaPlayerControls : UserControl
 
     private void OnSubtitleButtonClick(object sender, RoutedEventArgs e) => IsSubtitleOn = !IsSubtitleOn;
 
-    private async void OnSelectedAudioSourceChanged(object sender, SelectionChangedEventArgs e)
+    private void OnSelectedAudioSourceChanged(object sender, SelectionChangedEventArgs e)
     {
         if (null == SelectedAudioSource)
             return;
 
-        parentPlayer.SetAudioSourceAsync(await SelectedAudioSource.GetStreamAsync(), true)
-            .SafeFireAndForget(ex => Debug.WriteLine("Could not set audio source: " + ex.Message));
+        parentPlayer.SetAudioSource(SelectedAudioSource, true);
     }
 
-    private async void OnSelectedVideoSourceChanged(object sender, SelectionChangedEventArgs e)
+    private void OnSelectedVideoSourceChanged(object sender, SelectionChangedEventArgs e)
     {
         if (null == SelectedVideoSource)
             return;
 
-        parentPlayer.SetVideoSourceAsync(await SelectedVideoSource.GetStreamAsync(), _subtitleStreams)
-            .SafeFireAndForget(ex => Debug.WriteLine("Could not set video source: " + ex.Message));
+        parentPlayer.SetVideoSource(SelectedVideoSource, SubtitleSources);
     }
+
+    private void OnSpeedChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e) => parentPlayer.SetPlaybackRate(e.NewValue);
 }
