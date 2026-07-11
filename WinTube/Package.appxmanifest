@@ -9,7 +9,7 @@
 
   <Identity
     Name="7bc65243-c322-4fb1-8c47-ed537fdc2751"
-    Publisher="CN=TestAppxCert"
+    Publisher="CN=MyDevCert"
     Version="1.0.0.0" />
 
   <mp:PhoneIdentity PhoneProductId="7bc65243-c322-4fb1-8c47-ed537fdc2751" PhonePublisherId="00000000-0000-0000-0000-000000000000"/>

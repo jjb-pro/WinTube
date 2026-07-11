@@ -12,6 +12,7 @@ using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media.Animation;
+using Windows.UI.ViewManagement;
 using WinTube.Model;
 
 #nullable enable
@@ -24,9 +25,10 @@ namespace WinTube.Controls;
 [DependencyProperty<IEnumerable<INamedStreamSource>>("SubtitleSources")]
 public sealed partial class MediaPlayerControls : UserControl
 {
-    private readonly DispatcherTimer _hideTimer;
-    private readonly Storyboard _fadeInStoryboard;
-    private readonly Storyboard _fadeOutStoryboard;
+    private DispatcherTimer _hideTimer;
+    private Storyboard _fadeInStoryboard;
+    private Storyboard _fadeOutStoryboard;
+    private long _currentTimeMs;
 
     [ObservableProperty] public partial bool IsSubtitleOn { get; set; }
     [ObservableProperty] public partial IEnumerable<INamedStreamSource>? Subtitles { get; set; }
@@ -61,31 +63,29 @@ public sealed partial class MediaPlayerControls : UserControl
 
     async partial void OnVideoSourcesChanged()
     {
-        //await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
-        //    {
-        //        // select the best streams
-        //        SelectedAudioSource = AudioSources.FirstOrDefault();
-        //        SelectedVideoSource = VideoSources.LastOrDefault();
+        // select the best streams
+        SelectedAudioSource = AudioSources.FirstOrDefault();
+        SelectedVideoSource = VideoSources.LastOrDefault();
 
-        //        Debug.WriteLine($"Count = {AudioSources.Count()}");
-        //        Debug.WriteLine($"Selected = {SelectedAudioSource}");
-        //        Debug.WriteLine($"Contains = {AudioSources.Contains(SelectedAudioSource)}");
-        //        Debug.WriteLine($"ReferenceEquals = {ReferenceEquals(SelectedAudioSource, AudioSources.FirstOrDefault())}");
+        if (null == SelectedAudioSource || null == SelectedVideoSource)
+            return;
 
-        //        if (null == SelectedAudioSource || null == SelectedVideoSource)
-        //            return;
+        parentPlayer.SetSources(SelectedAudioSource, SelectedVideoSource, SubtitleSources);
+    }
 
-        //        parentPlayer.SetSources(AudioSources.FirstOrDefault(), VideoSources.LastOrDefault(), SubtitleSources);
-        //    });
+    partial void OnSelectedAudioSourceChanged(INamedStreamSource? oldValue, INamedStreamSource? newValue)
+    {
+        Debug.WriteLine(oldValue);
+        Debug.WriteLine(newValue);
     }
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        seekBar.SeekRequested += OnSeekBarSeekRequested;
+        seekBar.SeekRequested += SeekBar_SeekRequested;
         ResetTimer();
     }
 
-    private void OnSeekBarSeekRequested(object sender, SeekRequestedEventArgs e)
+    private void SeekBar_SeekRequested(object sender, SeekRequestedEventArgs e)
     {
         Debug.WriteLine($"Seek requested to {e.Position}");
     }
@@ -111,7 +111,15 @@ public sealed partial class MediaPlayerControls : UserControl
 
     private void OnPositionChanged(object sender, TimeSpan newPosition)
     {
+        // The seek bar benefits from updating every tick (~30fps) for smooth motion, but
+        // reformatting two strings that often is wasted work — nobody can read a label
+        // changing 30x/sec. Throttle text updates to ~4x/sec instead.
         seekBar.Position = newPosition;
+
+        var nowMs = (long)newPosition.TotalMilliseconds;
+        if (nowMs != 0 && Math.Abs(nowMs - _currentTimeMs) < 250)
+            return;
+        _currentTimeMs = nowMs;
 
         var r = parentPlayer.Length - newPosition;
         timeElapsedText.Text = newPosition.ToString(newPosition.Hours > 0 ? @"h\:mm\:ss" : @"m\:ss");
@@ -132,7 +140,35 @@ public sealed partial class MediaPlayerControls : UserControl
 
     private void UpdatePlayPauseIcon() => playPauseIcon.Glyph = parentPlayer.IsPlaying ? "\uE769" : "\uE768";
 
-    private void OnFullscreenButtonClicked(object sender, RoutedEventArgs e) { }
+    private void OnFullscreenButtonClicked(object sender, RoutedEventArgs e)
+    {
+        var view = ApplicationView.GetForCurrentView();
+        if (view.IsFullScreenMode)
+            view.ExitFullScreenMode();
+        else
+            view.TryEnterFullScreenMode();
+    }
+
+    private void OnMainGridDoubleTapped(object sender, DoubleTappedRoutedEventArgs e)
+    {
+        // YouTube-style double-tap: left half skips back, right half skips forward.
+        var x = e.GetPosition(mainGrid).X;
+        var delta = x < mainGrid.ActualWidth / 2
+            ? TimeSpan.FromSeconds(-10)
+            : TimeSpan.FromSeconds(10);
+
+        parentPlayer.SeekBy(delta);
+        ResetTimer();
+    }
+
+    private void OnSpeedSelected(object sender, RoutedEventArgs e)
+    {
+        if (sender is MenuFlyoutItem { Tag: string tagValue } &&
+            double.TryParse(tagValue, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out var rate))
+        {
+            parentPlayer.SetPlaybackRate(rate);
+        }
+    }
 
     private void OnMainGridPointerMoved(object sender, PointerRoutedEventArgs e) => ResetTimer();
 
@@ -173,6 +209,4 @@ public sealed partial class MediaPlayerControls : UserControl
 
         parentPlayer.SetVideoSource(SelectedVideoSource, SubtitleSources);
     }
-
-    private void OnSpeedChanged(object sender, Windows.UI.Xaml.Controls.Primitives.RangeBaseValueChangedEventArgs e) => parentPlayer.SetPlaybackRate(e.NewValue);
 }

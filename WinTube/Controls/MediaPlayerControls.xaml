@@ -18,6 +18,7 @@
         x:Name="mainGrid"
         HorizontalAlignment="Stretch"
         Background="Black"
+        DoubleTapped="OnMainGridDoubleTapped"
         PointerEntered="OnMainGridPointerMoved"
         PointerMoved="OnMainGridPointerMoved">
 
@@ -26,6 +27,14 @@
             HorizontalAlignment="Stretch"
             VerticalAlignment="Stretch"
             PositionChanged="OnPositionChanged" />
+
+        <ProgressRing
+            Width="48"
+            Height="48"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            IsActive="{Binding ElementName=parentPlayer, Path=IsBuffering, Mode=OneWay}"
+            Visibility="{Binding ElementName=parentPlayer, Path=IsBuffering, Mode=OneWay, Converter={StaticResource BooleanToVisibilityConverter}}" />
 
         <Grid
             x:Name="overlays"
@@ -77,7 +86,6 @@
                         <Flyout>
                             <Grid Width="250">
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="auto" />
                                     <RowDefinition Height="auto" />
                                     <RowDefinition Height="auto" />
                                     <RowDefinition Height="auto" />
@@ -136,23 +144,45 @@
                                     ItemsSource="{x:Bind Subtitles, Mode=OneWay}"
                                     SelectedItem="{x:Bind SelectedSubtitle, Mode=TwoWay}"
                                     Visibility="{x:Bind Subtitles, Mode=OneWay, Converter={StaticResource InvertedNullToVisibilityConverter}}" />
-
-                                <TextBlock
-                                    Grid.Row="5"
-                                    Margin="0,4,0,0"
-                                    VerticalAlignment="Center"
-                                    Text="Speed" />
-                                <Slider
-                                    Grid.Row="5"
-                                    Grid.Column="1"
-                                    Margin="12,4,0,0"
-                                    Maximum="4.0"
-                                    Minimum="0.25"
-                                    StepFrequency="0.25"
-                                    ValueChanged="OnSpeedChanged"
-                                    Value="1" />
                             </Grid>
                         </Flyout>
+                    </Button.Flyout>
+                </Button>
+
+                <Button Margin="22,0,0,0" Style="{StaticResource TransparentPathIconButtonStyle}">
+                    <local:FontIcon FontSize="16" Glyph="&#xEC57;" />
+
+                    <Button.Flyout>
+                        <MenuFlyout Placement="Bottom">
+                            <MenuFlyoutItem
+                                Click="OnSpeedSelected"
+                                Tag="0.25"
+                                Text="0.25x" />
+                            <MenuFlyoutItem
+                                Click="OnSpeedSelected"
+                                Tag="0.5"
+                                Text="0.5x" />
+                            <MenuFlyoutItem
+                                Click="OnSpeedSelected"
+                                Tag="0.75"
+                                Text="0.75x" />
+                            <MenuFlyoutItem
+                                Click="OnSpeedSelected"
+                                Tag="1.0"
+                                Text="Normal" />
+                            <MenuFlyoutItem
+                                Click="OnSpeedSelected"
+                                Tag="1.25"
+                                Text="1.25x" />
+                            <MenuFlyoutItem
+                                Click="OnSpeedSelected"
+                                Tag="1.5"
+                                Text="1.5x" />
+                            <MenuFlyoutItem
+                                Click="OnSpeedSelected"
+                                Tag="2.0"
+                                Text="2x" />
+                        </MenuFlyout>
                     </Button.Flyout>
                 </Button>
             </StackPanel>

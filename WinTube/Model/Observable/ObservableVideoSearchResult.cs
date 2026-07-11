@@ -7,7 +7,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
-using Universal.WebP;
+//using Universal.WebP;
 using Windows.UI.Xaml.Media.Imaging;
 using YoutubeExplode;
 using YoutubeExplode.Channels;
@@ -51,21 +51,21 @@ public partial class ObservableVideoSearchResult : ObservableSearchResult
     {
         var bytes = await _thumbnailClient.GetByteArrayAsync(url);
 
-        try
-        {
-            var webp = new WebPDecoder();
-            var size = await webp.GetSizeAsync(bytes);
-            var pixelData = (await webp.DecodeBgraAsync(bytes)).ToArray();
+        //try
+        //{
+        //    var webp = new WebPDecoder();
+        //    var size = await webp.GetSizeAsync(bytes);
+        //    var pixelData = (await webp.DecodeBgraAsync(bytes)).ToArray();
 
-            var bitmap = new WriteableBitmap((int)size.Width, (int)size.Height);
-            using var stream = bitmap.PixelBuffer.AsStream();
-            await stream.WriteAsync(pixelData, 0, pixelData.Length);
+        //    var bitmap = new WriteableBitmap((int)size.Width, (int)size.Height);
+        //    using var stream = bitmap.PixelBuffer.AsStream();
+        //    await stream.WriteAsync(pixelData, 0, pixelData.Length);
 
-            Thumbnail = bitmap;
-        }
-        catch(Exception ex)
-        {
-            Debug.WriteLine($"Failed to decode WebP image: {ex.Message}");
-        }
+        //    Thumbnail = bitmap;
+        //}
+        //catch(Exception ex)
+        //{
+        //    Debug.WriteLine($"Failed to decode WebP image: {ex.Message}");
+        //}
     }
 }

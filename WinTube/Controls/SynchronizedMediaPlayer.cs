@@ -329,6 +329,12 @@ public sealed partial class SynchronizedMediaPlayer : MediaPlayerElement
         _videoPlayer.Source = _videoSource;
     }
 
+    public void SetSubtitle(uint idx, bool isOn)
+    {
+        for (int i )
+            _videoPlayer.set
+    }
+
     // dispose resources on unload
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {

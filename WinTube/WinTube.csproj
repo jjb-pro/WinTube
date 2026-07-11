@@ -23,7 +23,7 @@
     <AppxOSMinVersionReplaceManifestVersion>false</AppxOSMinVersionReplaceManifestVersion>
     <AppxOSMaxVersionTestedReplaceManifestVersion>false</AppxOSMaxVersionTestedReplaceManifestVersion>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
-    <PackageCertificateThumbprint>01DA9179513D94AA9ED32A9DFCF2D3D2B05034D6</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>0A57A5E68682F308C2D79F1007697955289253D5</PackageCertificateThumbprint>
     <AppxPackageSigningTimestampDigestAlgorithm>SHA256</AppxPackageSigningTimestampDigestAlgorithm>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
     <GenerateTestArtifacts>True</GenerateTestArtifacts>
@@ -344,9 +344,9 @@
     <SDKReference Include="Microsoft.VCLibs, Version=14.0">
       <Name>Visual C++ 2015-2019 Runtime for Universal Windows Platform Apps</Name>
     </SDKReference>
-    <SDKReference Include="WebP for the UWP, Version=1.0">
+    <!--<SDKReference Include="WebP for the UWP, Version=1.0">
       <Name>WebP for the UWP</Name>
-    </SDKReference>
+    </SDKReference>-->
   </ItemGroup>
   <ItemGroup>
     <None Include="WinTube_1.0.0.0_arm.appxbundle" />
